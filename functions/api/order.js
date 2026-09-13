@@ -190,46 +190,23 @@ export async function onRequest(context) {
         return jsonResponse({ success: true, released: successCount, total: results.length, details: results });
       }
 
-      // ========== 创建订单（支持普通创建与指定号码创建） ==========
+      // ========== 创建订单（仅保存参数，不立即向平台申请） ==========
       case 'createOrder': {
         if (!oid) return jsonResponse({ error: '缺少订单ID' }, 400);
         let existing = await kv.get(oid, { type: 'json' });
         if (existing) return jsonResponse({ error: '订单已存在' }, 400);
 
-        const specifiedPhone = url.searchParams.get('phone');
-
-        // 如果传入了指定手机号，直接通过平台 API 取指定号码
-        if (specifiedPhone) {
-          const reqUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${HAOZHU.sid}&phone=${encodeURIComponent(specifiedPhone)}`;
-          const phoneResp = await fetch(reqUrl);
-          const phoneData = await phoneResp.json();
-
-          if (phoneData.code == 0) {
-            const realPhone = phoneData.phone || phoneData.Phone || phoneData.mobile || specifiedPhone;
-            const newOrder = {
-              status: 'active',
-              phone: realPhone,
-              expire: Date.now() + 120 * 1000,
-              code: null,
-              fromPool: false,
-              filters: {}
-            };
-            await kv.put(oid, JSON.stringify(newOrder));
-            return jsonResponse({ success: true, phone: realPhone });
-          } else {
-            return jsonResponse({ error: '指定号码取号失败：' + (phoneData.msg || '未知错误') }, 400);
-          }
-        }
-
-        // 普通预创建订单逻辑
+        const specifiedPhone = url.searchParams.get('phone') || '';
         const ascription = url.searchParams.get('ascription') || '';
         const paragraph  = url.searchParams.get('paragraph')  || '';
         const exclude    = url.searchParams.get('exclude')    || '';
         const isp        = url.searchParams.get('isp')        || '';
         const province   = url.searchParams.get('Province')   || '';
 
+        // 仅登记订单信息，待买家打开链接请求 getPhone 时才真正开始取号倒计时
         const newOrder = {
           status: 'new',
+          assignedPhone: specifiedPhone, // 指定号码（若有）
           phone: null,
           expire: null,
           code: null,
@@ -429,7 +406,7 @@ export async function onRequest(context) {
         return jsonResponse(order);
       }
 
-      // ========== 获取手机号 ==========
+      // ========== 获取手机号（买家访问时调用） ==========
       case 'getPhone': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) {
@@ -437,10 +414,13 @@ export async function onRequest(context) {
         }
         if (order.status === 'done') return jsonResponse({ error: '订单已完成' }, 403);
         if (order.status === 'released') return jsonResponse({ error: '订单已被管理员释放' }, 403);
+        
+        // 如果已经取过且还在倒计时内，直接返回
         if (order.status === 'active' && order.expire && Date.now() < order.expire) {
           return jsonResponse({ phone: order.phone, expire: order.expire });
         }
 
+        // 清理此前释放池中占用的逻辑
         if (order.phone && order.fromPool) {
           let pool = await getPool();
           const entry = pool.find(p => p.phone === order.phone);
@@ -450,6 +430,27 @@ export async function onRequest(context) {
           }
         }
 
+        // 场景 A：订单配置了【指定手机号】（买家首次打开该订单时向平台取指定号）
+        if (order.assignedPhone) {
+          const reqUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${HAOZHU.sid}&phone=${encodeURIComponent(order.assignedPhone)}`;
+          const phoneResp = await fetch(reqUrl);
+          const phoneData = await phoneResp.json();
+
+          if (phoneData.code == 0) {
+            const realPhone = phoneData.phone || phoneData.Phone || phoneData.mobile || order.assignedPhone;
+            order.phone = realPhone;
+            order.expire = Date.now() + 120 * 1000;
+            order.status = 'active';
+            order.code = null;
+            order.fromPool = false;
+            await kv.put(oid, JSON.stringify(order));
+            return jsonResponse({ phone: realPhone, expire: order.expire });
+          } else {
+            return jsonResponse({ error: '获取指定手机号失败：' + (phoneData.msg || '平台无该号或已被占用') }, 400);
+          }
+        }
+
+        // 场景 B：普通订单优先从本地号码池取
         let pool = await getPool();
         const available = pool.filter(p => p.status === 'available');
         if (available.length > 0) {
@@ -467,11 +468,19 @@ export async function onRequest(context) {
           chosen.expire = expire;
           await savePool(pool);
 
-          const newOrder = { phone, expire, status: 'active', code: null, fromPool: true, filters: order.filters || {} };
+          const newOrder = { 
+            ...order,
+            phone, 
+            expire, 
+            status: 'active', 
+            code: null, 
+            fromPool: true 
+          };
           await kv.put(oid, JSON.stringify(newOrder));
           return jsonResponse({ phone, expire });
         }
 
+        // 场景 C：普通订单从接码平台动态取号
         const f = order.filters || {};
         let apiUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${HAOZHU.sid}`;
         if (f.ascription) apiUrl += `&ascription=${encodeURIComponent(f.ascription)}`;
@@ -485,12 +494,12 @@ export async function onRequest(context) {
         if (phoneData.code == 0) {
           const phone = phoneData.phone || phoneData.Phone || phoneData.mobile;
           const newOrder = {
+            ...order,
             phone,
             expire: Date.now() + 120 * 1000,
             status: 'active',
             code: null,
-            fromPool: false,
-            filters: f
+            fromPool: false
           };
           await kv.put(oid, JSON.stringify(newOrder));
           return jsonResponse({ phone, expire: newOrder.expire });
