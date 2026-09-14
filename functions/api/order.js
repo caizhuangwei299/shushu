@@ -3,11 +3,18 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
   const oid = url.searchParams.get('oid');
-  const sid = url.searchParams.get('sid') || '24085';
 
-  // 写死的 API 账号密码
-  const apiUser = '0d1f0214da0eecc58ba00012056abf8ceba61d3522e9d1b4b4882aa28892c374';
-  const apiPass = '4e32e4470173719ea41f7388d6f3fabfbd0a19edc3c1851c5921060810d0571c';
+  const kv = env.ORDERS;
+  const POOL_KEY = 'phone_pool';
+  const LOG_KEY = 'phone_logs';
+  const CARD_KEY = 'card_keys';
+
+  // 1. 全局读取数据库中保存的 API 配置（由前端上传）
+  const apiCfg = await kv.get('__api_config__', { type: 'json' }) || {};
+  const apiUser = apiCfg.user || '';
+  const apiPass = apiCfg.pass || '';
+  // SID 优先级：URL传参 > 数据库保存 > 默认值
+  const sid = url.searchParams.get('sid') || apiCfg.sid || '24085';
 
   // 所有无需 oid 的接口
   const poolActions = [
@@ -17,7 +24,8 @@ export async function onRequest(context) {
     'createOrder',
     'listActiveOrders',
     'releaseAllOrders',
-    'cancelRecvPhone'
+    'cancelRecvPhone',
+    'saveApiConfig' // <-- 新增的保存配置接口
   ];
   if (!oid && !poolActions.includes(action)) {
     return jsonResponse({ error: '缺少订单ID' }, 400);
@@ -29,11 +37,6 @@ export async function onRequest(context) {
     pass: apiPass,
     sid: sid
   };
-
-  const kv = env.ORDERS;
-  const POOL_KEY = 'phone_pool';
-  const LOG_KEY = 'phone_logs';
-  const CARD_KEY = 'card_keys';
 
   async function getPool() { const p = await kv.get(POOL_KEY, { type: 'json' }); return p || []; }
   async function savePool(pool) { await kv.put(POOL_KEY, JSON.stringify(pool)); }
@@ -65,13 +68,19 @@ export async function onRequest(context) {
 
   // ========== 优化：按需获取 Token（懒加载） ==========
   async function getValidToken() {
+    // 拦截：如果没有配置账号密码，直接报错
+    if (!HAOZHU.user || !HAOZHU.pass) {
+      throw new Error('未配置接码平台账号密码，请先在管理面板的系统配置中保存');
+    }
+
     let tokenData = await kv.get('__token_data__', { type: 'json' });
     let tokenStr = tokenData ? tokenData.token : null;
     let tokenExpiry = tokenData ? tokenData.expire : 0;
     const tokenApiUser = tokenData ? tokenData.apiUser : null;
     const tokenApiPass = tokenData ? tokenData.apiPass : null;
 
-    const needLogin = !tokenStr || Date.now() >= tokenExpiry - 300000 || tokenApiUser !== apiUser || tokenApiPass !== apiPass;
+    // 如果 Token 过期，或者配置的账号密码发生了变更，就重新登录
+    const needLogin = !tokenStr || Date.now() >= tokenExpiry - 300000 || tokenApiUser !== HAOZHU.user || tokenApiPass !== HAOZHU.pass;
 
     if (needLogin) {
       const loginResp = await fetch(`https://${HAOZHU.server}/sms/?api=login&user=${HAOZHU.user}&pass=${HAOZHU.pass}`);
@@ -125,6 +134,19 @@ export async function onRequest(context) {
 
   try {
     switch (action) {
+
+      // ========== 接收并保存前端传来的 API 配置 ==========
+      case 'saveApiConfig': {
+        const newUser = url.searchParams.get('apiUser');
+        const newPass = url.searchParams.get('apiPass');
+        const newSid = url.searchParams.get('sid');
+        
+        if (!newUser || !newPass) return jsonResponse({ error: '缺少账号或密码' }, 400);
+        
+        await kv.put('__api_config__', JSON.stringify({ user: newUser, pass: newPass, sid: newSid }));
+        await kv.delete('__token_data__'); // 配置更新后，强制删除旧 token 重新登录
+        return jsonResponse({ success: true });
+      }
 
       // ========== 指定释放手机号 ==========
       case 'cancelRecvPhone': {
@@ -207,7 +229,7 @@ export async function onRequest(context) {
         const exclude    = url.searchParams.get('exclude')    || '';
         const isp        = url.searchParams.get('isp')        || '';
         const province   = url.searchParams.get('Province')   || '';
-        const uid        = url.searchParams.get('uid')        || ''; // 已修复：新增获取 uid 参数
+        const uid        = url.searchParams.get('uid')        || ''; 
 
         // 仅登记订单信息，不需要获取 Token，直接写入数据库
         const newOrder = {
@@ -217,7 +239,7 @@ export async function onRequest(context) {
           expire: null,
           code: null,
           fromPool: false,
-          filters: { ascription, paragraph, exclude, isp, province, uid } // 已修复：在 filters 中保存 uid
+          filters: { ascription, paragraph, exclude, isp, province, uid } 
         };
         await kv.put(oid, JSON.stringify(newOrder));
         return jsonResponse({ success: true });
@@ -498,7 +520,7 @@ export async function onRequest(context) {
         if (f.exclude)    apiUrl += `&exclude=${encodeURIComponent(f.exclude)}`;
         if (f.isp)        apiUrl += `&isp=${encodeURIComponent(f.isp)}`;
         if (f.province)   apiUrl += `&Province=${encodeURIComponent(f.province)}`;
-        if (f.uid)        apiUrl += `&uid=${encodeURIComponent(f.uid)}`; // 已修复：传递 uid 参数
+        if (f.uid)        apiUrl += `&uid=${encodeURIComponent(f.uid)}`; 
 
         const phoneResp = await fetch(apiUrl);
         const phoneData = await phoneResp.json();
