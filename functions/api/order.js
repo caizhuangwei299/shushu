@@ -190,7 +190,7 @@ export async function onRequest(context) {
         return jsonResponse({ success: true, released: successCount, total: results.length, details: results });
       }
 
-      // ========== 创建订单（仅保存参数，不立即向平台申请） ==========
+      // ========== 创建订单（已支持 paragraph, exclude, uid） ==========
       case 'createOrder': {
         if (!oid) return jsonResponse({ error: '缺少订单ID' }, 400);
         let existing = await kv.get(oid, { type: 'json' });
@@ -200,18 +200,19 @@ export async function onRequest(context) {
         const ascription = url.searchParams.get('ascription') || '';
         const paragraph  = url.searchParams.get('paragraph')  || '';
         const exclude    = url.searchParams.get('exclude')    || '';
+        const uid        = url.searchParams.get('uid')        || '';
         const isp        = url.searchParams.get('isp')        || '';
         const province   = url.searchParams.get('Province')   || '';
 
-        // 仅登记订单信息，待买家打开链接请求 getPhone 时才真正开始取号倒计时
+        // 登记订单配置，待买家打开链接请求 getPhone 时才触发对应取号参数
         const newOrder = {
           status: 'new',
-          assignedPhone: specifiedPhone, // 指定号码（若有）
+          assignedPhone: specifiedPhone,
           phone: null,
           expire: null,
           code: null,
           fromPool: false,
-          filters: { ascription, paragraph, exclude, isp, province }
+          filters: { ascription, paragraph, exclude, uid, isp, province }
         };
         await kv.put(oid, JSON.stringify(newOrder));
         return jsonResponse({ success: true });
@@ -406,7 +407,7 @@ export async function onRequest(context) {
         return jsonResponse(order);
       }
 
-      // ========== 获取手机号（买家访问时调用） ==========
+      // ========== 获取手机号（已接入 paragraph, exclude, uid 转发） ==========
       case 'getPhone': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) {
@@ -430,7 +431,7 @@ export async function onRequest(context) {
           }
         }
 
-        // 场景 A：订单配置了【指定手机号】（买家首次打开该订单时向平台取指定号）
+        // 场景 A：订单配置了【指定手机号】
         if (order.assignedPhone) {
           const reqUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${HAOZHU.sid}&phone=${encodeURIComponent(order.assignedPhone)}`;
           const phoneResp = await fetch(reqUrl);
@@ -480,12 +481,13 @@ export async function onRequest(context) {
           return jsonResponse({ phone, expire });
         }
 
-        // 场景 C：普通订单从接码平台动态取号
+        // 场景 C：普通订单从接码平台动态取号（携带 paragraph, exclude, uid 参数）
         const f = order.filters || {};
         let apiUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${HAOZHU.sid}`;
         if (f.ascription) apiUrl += `&ascription=${encodeURIComponent(f.ascription)}`;
         if (f.paragraph)  apiUrl += `&paragraph=${encodeURIComponent(f.paragraph)}`;
         if (f.exclude)    apiUrl += `&exclude=${encodeURIComponent(f.exclude)}`;
+        if (f.uid)        apiUrl += `&uid=${encodeURIComponent(f.uid)}`;
         if (f.isp)        apiUrl += `&isp=${encodeURIComponent(f.isp)}`;
         if (f.province)   apiUrl += `&Province=${encodeURIComponent(f.province)}`;
 
