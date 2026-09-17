@@ -47,6 +47,8 @@ export async function onRequest(context) {
     if (logs.length > 100) logs = logs.slice(-100);
     await kv.put(LOG_KEY, JSON.stringify(logs));
   }
+  
+  // 【关键点】：这里的日志记录本身就已经把 oid 存进去了，所以前端 logList 能直接获取到
   async function addLog(phone, oid, action) {
     if (action !== 'sms_received') return;
     const logs = await getLogs();
@@ -128,7 +130,7 @@ export async function onRequest(context) {
     order.phone = null;
     order.expire = null;
     order.code = null;
-    order.assignedPhone = null; // 清除可能存在的指定手机号
+    order.assignedPhone = null; 
     await kv.put(oid, JSON.stringify(order));
     return { success: true };
   }
@@ -136,7 +138,6 @@ export async function onRequest(context) {
   try {
     switch (action) {
 
-      // ========== 接收并保存前端传来的 API 配置 ==========
       case 'saveApiConfig': {
         const newUser = url.searchParams.get('apiUser');
         const newPass = url.searchParams.get('apiPass');
@@ -149,7 +150,6 @@ export async function onRequest(context) {
         return jsonResponse({ success: true });
       }
 
-      // ========== 指定释放手机号 ==========
       case 'cancelRecvPhone': {
         const phone = url.searchParams.get('phone');
         if (!phone) return jsonResponse({ error: '缺少 phone 参数' }, 400);
@@ -189,7 +189,6 @@ export async function onRequest(context) {
         }
       }
 
-      // ========== 列出活跃订单 ==========
       case 'listActiveOrders': {
         const keys = await kv.list();
         const orders = [];
@@ -203,7 +202,6 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
-      // ========== 一键释放全部活跃订单 ==========
       case 'releaseAllOrders': {
         const keys = await kv.list();
         const results = [];
@@ -219,7 +217,6 @@ export async function onRequest(context) {
         return jsonResponse({ success: true, released: successCount, total: results.length, details: results });
       }
 
-      // ========== 创建订单 ==========
       case 'createOrder': {
         if (!oid) return jsonResponse({ error: '缺少订单ID' }, 400);
         let existing = await kv.get(oid, { type: 'json' });
@@ -246,7 +243,6 @@ export async function onRequest(context) {
         return jsonResponse({ success: true });
       }
 
-      // ========== 卡密系统 ==========
       case 'generateCard': {
         const type = url.searchParams.get('type') || 'trial';
         const count = parseInt(url.searchParams.get('count')) || 1;
@@ -314,7 +310,6 @@ export async function onRequest(context) {
         return jsonResponse({ success: true });
       }
 
-      // ========== 查询余额 ==========
       case 'getBalance': {
         const tokenStr = await getValidToken();
         const balanceResp = await fetch(`https://${HAOZHU.server}/sms/?api=getSummary&token=${tokenStr}`);
@@ -330,7 +325,6 @@ export async function onRequest(context) {
         return jsonResponse({ error: balanceData.msg || '查询失败' });
       }
 
-      // ========== 拉黑手机号 ==========
       case 'blockPhone': {
         const phone = url.searchParams.get('phone');
         if (!phone) return jsonResponse({ error: '缺少 phone 参数' }, 400);
@@ -346,7 +340,6 @@ export async function onRequest(context) {
         return jsonResponse({ error: blockData.msg || '拉黑失败' });
       }
 
-      // ========== 管理员强制释放订单 ==========
       case 'lockOrder': {
         if (!oid) return jsonResponse({ error: '缺少订单ID' }, 400);
         const result = await releaseOrderByOid(oid);
@@ -357,7 +350,6 @@ export async function onRequest(context) {
         }
       }
 
-      // ========== 号码池管理 ==========
       case 'poolList': { const pool = await getPool(); return jsonResponse({ pool }); }
       case 'addPhone': {
         const phone = url.searchParams.get('phone');
@@ -410,13 +402,12 @@ export async function onRequest(context) {
         return jsonResponse({ success: true });
       }
 
-      // ========== 日志列表 ==========
+      // ========== 日志列表：返回给前端时已经包含了 oid ==========
       case 'logList': {
         const logs = await getLogs();
         return jsonResponse({ logs: logs.reverse() });
       }
 
-      // ========== 订单状态 ==========
       case 'status': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) {
@@ -437,7 +428,6 @@ export async function onRequest(context) {
         return jsonResponse(order);
       }
 
-      // ========== 获取手机号（买家访问时调用） ==========
       case 'getPhone': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) {
@@ -446,12 +436,10 @@ export async function onRequest(context) {
         if (order.status === 'done') return jsonResponse({ error: '订单已完成' }, 403);
         if (order.status === 'released') return jsonResponse({ error: '订单已被管理员释放' }, 403);
         
-        // 如果已经取过且还在倒计时内，直接返回
         if (order.status === 'active' && order.expire && Date.now() < order.expire) {
           return jsonResponse({ phone: order.phone, expire: order.expire });
         }
 
-        // 清理此前释放池中占用的逻辑
         if (order.phone && order.fromPool) {
           let pool = await getPool();
           const entry = pool.find(p => p.phone === order.phone);
@@ -463,7 +451,6 @@ export async function onRequest(context) {
 
         const tokenStr = await getValidToken();
 
-        // 场景 A：订单配置了【指定手机号】
         if (order.assignedPhone) {
           const reqUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${HAOZHU.sid}&phone=${encodeURIComponent(order.assignedPhone)}`;
           const phoneResp = await fetch(reqUrl);
@@ -483,7 +470,6 @@ export async function onRequest(context) {
           }
         }
 
-        // 场景 B：普通订单优先从本地号码池取
         let pool = await getPool();
         const available = pool.filter(p => p.status === 'available');
         if (available.length > 0) {
@@ -513,7 +499,6 @@ export async function onRequest(context) {
           return jsonResponse({ phone, expire });
         }
 
-        // 场景 C：普通订单从接码平台动态取号
         const f = order.filters || {};
         let apiUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${HAOZHU.sid}`;
         if (f.ascription) apiUrl += `&ascription=${encodeURIComponent(f.ascription)}`;
@@ -541,13 +526,11 @@ export async function onRequest(context) {
         return jsonResponse({ error: phoneData.msg || '取号失败' }, 500);
       }
 
-      // ========== 释放（买家释放）核心修复 ==========
       case 'release': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) return jsonResponse({ error: '订单不存在' }, 404);
         if (order.status === 'done') return jsonResponse({ error: '订单已完成' }, 403);
 
-        // 优先获取前端传递过来的具体手机号，若无则取 order 中保存的
         const phoneParam = url.searchParams.get('phone');
         const targetPhone = phoneParam || order.phone;
 
@@ -567,7 +550,6 @@ export async function onRequest(context) {
             const cancelResp = await fetch(cancelUrl);
             const cancelData = await cancelResp.json();
 
-            // 严格检查接码平台返回，若失败则将平台的明确报错反馈给客户端
             if (cancelData.code != 0 && !cancelData.msg?.includes('成功') && !cancelData.msg?.includes('已释放')) {
               return jsonResponse({ error: '接码平台释放失败: ' + (cancelData.msg || JSON.stringify(cancelData)) }, 400);
             }
@@ -576,12 +558,11 @@ export async function onRequest(context) {
           }
         }
 
-        // 订单状态重置，同时彻底清除 assignedPhone 避免死循环获取同一号码
         order.status = 'new';
         order.phone = null;
         order.expire = null;
         order.code = null;
-        order.assignedPhone = null; // 关键清除
+        order.assignedPhone = null; 
         await kv.put(oid, JSON.stringify(order));
         return jsonResponse({ success: true });
       }
@@ -603,7 +584,10 @@ export async function onRequest(context) {
               order.code = raw;
               order.status = 'done';
               await kv.put(oid, JSON.stringify(order));
+              
+              // 【关键点】：验证码获取成功时，将完整的订单号（oid）一起写入了日志库
               await addLog(order.phone, oid, 'sms_received');
+              
               return jsonResponse({ code: raw, status: 'done' });
             }
           }
