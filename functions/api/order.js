@@ -20,7 +20,7 @@ export async function onRequest(context) {
     'generateCard', 'activateCard', 'verifyCard', 'cardList', 'deleteCard',
     'createOrder',
     'listActiveOrders',
-    'listAllOrders', // <--- 新增：获取所有订单记录，无需 oid
+    'listAllOrders',
     'releaseAllOrders',
     'cancelRecvPhone',
     'saveApiConfig'
@@ -195,32 +195,59 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
-      // ========== 获取所有订单记录（并发优化版） ==========
+      // ========== 获取所有订单记录（分页+容错优化版） ==========
       case 'listAllOrders': {
-        const keys = await kv.list();
-        const validKeys = keys.keys.filter(k => 
+        let keys = [];
+        let cursor = null;
+        let listComplete = false;
+        
+        // 1. 循环获取所有 KV Key，突破 1000 条限制
+        while (!listComplete) {
+            const options = cursor ? { cursor } : {};
+            const listRes = await kv.list(options);
+            keys = keys.concat(listRes.keys);
+            listComplete = listRes.list_complete;
+            cursor = listRes.cursor;
+        }
+
+        // 2. 过滤掉系统配置项
+        const validKeys = keys.filter(k => 
           !k.name.startsWith('__') && 
           k.name !== POOL_KEY && 
           k.name !== LOG_KEY && 
           k.name !== CARD_KEY
         );
         
-        const orderPromises = validKeys.map(k => kv.get(k.name, { type: 'json' }));
-        const orderResults = await Promise.all(orderPromises);
+        const orders = [];
+        const BATCH_SIZE = 50; // 3. 分批处理，防止 Worker 并发超限崩溃
         
-        const orders = validKeys.map((k, index) => {
-          const order = orderResults[index];
-          if (!order) return null;
-          return {
-            oid: k.name,
-            phone: order.phone || '---',
-            assignedPhone: order.assignedPhone || '',
-            status: order.status || 'new',
-            code: order.code || '',
-            expire: order.expire || null,
-          };
-        }).filter(o => o !== null);
+        for (let i = 0; i < validKeys.length; i += BATCH_SIZE) {
+            const batch = validKeys.slice(i, i + BATCH_SIZE);
+            // 4. 单独捕获每一个请求的异常，防止个别数据损坏导致整体崩溃
+            const batchPromises = batch.map(k => 
+                kv.get(k.name, { type: 'json' }).catch(e => {
+                    console.error(`读取订单 ${k.name} 失败:`, e);
+                    return null; 
+                })
+            );
+            const batchResults = await Promise.all(batchPromises);
+            
+            batch.forEach((k, index) => {
+                const order = batchResults[index];
+                if (order) {
+                    orders.push({
+                        oid: k.name,
+                        phone: order.phone || '---',
+                        assignedPhone: order.assignedPhone || '',
+                        status: order.status || 'new',
+                        code: order.code || '',
+                        expire: order.expire || null,
+                    });
+                }
+            });
+        }
         
+        // 5. 按订单号倒序
         orders.sort((a, b) => b.oid.localeCompare(a.oid));
         return jsonResponse({ orders });
       }
