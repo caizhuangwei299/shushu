@@ -195,22 +195,28 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
-      // ========== 获取所有订单记录（分页+容错优化版） ==========
+      // ========== 获取订单记录（限制最新 500 条，解决超时导致搜索不到的问题） ==========
       case 'listAllOrders': {
+        const MAX_KEYS = 500; // 限制最多拉取 500 条，防止 Worker 超时
         let keys = [];
         let cursor = null;
         let listComplete = false;
         
-        // 1. 循环获取所有 KV Key，突破 1000 条限制
-        while (!listComplete) {
-            const options = cursor ? { cursor } : {};
+        // 倒序获取（最新的在前），避免拿到旧数据导致最新的搜索不到
+        while (!listComplete && keys.length < MAX_KEYS) {
+            const options = cursor ? { cursor, reverse: true } : { reverse: true };
+            options.limit = 100; // 每次拉取 100 条，减少单次 KV 请求负载
             const listRes = await kv.list(options);
             keys = keys.concat(listRes.keys);
             listComplete = listRes.list_complete;
             cursor = listRes.cursor;
         }
+        
+        // 超出限制则截断（只保留最新的 500 条）
+        if (keys.length > MAX_KEYS) {
+            keys = keys.slice(0, MAX_KEYS);
+        }
 
-        // 2. 过滤掉系统配置项
         const validKeys = keys.filter(k => 
           !k.name.startsWith('__') && 
           k.name !== POOL_KEY && 
@@ -219,11 +225,10 @@ export async function onRequest(context) {
         );
         
         const orders = [];
-        const BATCH_SIZE = 50; // 3. 分批处理，防止 Worker 并发超限崩溃
+        const BATCH_SIZE = 50; // 分批处理数据，防止并发超限崩溃
         
         for (let i = 0; i < validKeys.length; i += BATCH_SIZE) {
             const batch = validKeys.slice(i, i + BATCH_SIZE);
-            // 4. 单独捕获每一个请求的异常，防止个别数据损坏导致整体崩溃
             const batchPromises = batch.map(k => 
                 kv.get(k.name, { type: 'json' }).catch(e => {
                     console.error(`读取订单 ${k.name} 失败:`, e);
@@ -247,7 +252,7 @@ export async function onRequest(context) {
             });
         }
         
-        // 5. 按订单号倒序
+        // 按订单号倒序（确保最新创建的订单在前面）
         orders.sort((a, b) => b.oid.localeCompare(a.oid));
         return jsonResponse({ orders });
       }
