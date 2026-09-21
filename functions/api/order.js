@@ -195,24 +195,22 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
-      // ========== 获取订单记录（限制最新 500 条，解决超时导致搜索不到的问题） ==========
+      // ========== 获取订单记录（只拉取已收到验证码的订单） ==========
       case 'listAllOrders': {
-        const MAX_KEYS = 500; // 限制最多拉取 500 条，防止 Worker 超时
+        const MAX_KEYS = 500; // 限制最多拉取 500 条
         let keys = [];
         let cursor = null;
         let listComplete = false;
         
-        // 倒序获取（最新的在前），避免拿到旧数据导致最新的搜索不到
         while (!listComplete && keys.length < MAX_KEYS) {
             const options = cursor ? { cursor, reverse: true } : { reverse: true };
-            options.limit = 100; // 每次拉取 100 条，减少单次 KV 请求负载
+            options.limit = 100; 
             const listRes = await kv.list(options);
             keys = keys.concat(listRes.keys);
             listComplete = listRes.list_complete;
             cursor = listRes.cursor;
         }
         
-        // 超出限制则截断（只保留最新的 500 条）
         if (keys.length > MAX_KEYS) {
             keys = keys.slice(0, MAX_KEYS);
         }
@@ -225,7 +223,7 @@ export async function onRequest(context) {
         );
         
         const orders = [];
-        const BATCH_SIZE = 50; // 分批处理数据，防止并发超限崩溃
+        const BATCH_SIZE = 50; 
         
         for (let i = 0; i < validKeys.length; i += BATCH_SIZE) {
             const batch = validKeys.slice(i, i + BATCH_SIZE);
@@ -239,12 +237,13 @@ export async function onRequest(context) {
             
             batch.forEach((k, index) => {
                 const order = batchResults[index];
-                if (order) {
+                // 核心修改：只保留已接收到验证码的订单
+                if (order && order.status === 'done') {
                     orders.push({
                         oid: k.name,
                         phone: order.phone || '---',
                         assignedPhone: order.assignedPhone || '',
-                        status: order.status || 'new',
+                        status: 'done', 
                         code: order.code || '',
                         expire: order.expire || null,
                     });
@@ -252,7 +251,6 @@ export async function onRequest(context) {
             });
         }
         
-        // 按订单号倒序（确保最新创建的订单在前面）
         orders.sort((a, b) => b.oid.localeCompare(a.oid));
         return jsonResponse({ orders });
       }
