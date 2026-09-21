@@ -195,7 +195,7 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
-      // ========== 获取订单记录（只拉取已收到验证码的订单） ==========
+      // ========== 获取订单记录（只拉取已收到验证码的订单，并返回获取时间） ==========
       case 'listAllOrders': {
         const MAX_KEYS = 500; // 限制最多拉取 500 条
         let keys = [];
@@ -246,6 +246,7 @@ export async function onRequest(context) {
                         status: 'done', 
                         code: order.code || '',
                         expire: order.expire || null,
+                        doneTime: order.doneTime || null, // <--- 新增：获取时间
                     });
                 }
             });
@@ -636,6 +637,7 @@ export async function onRequest(context) {
             if (digits.length >= 4) {
               order.code = raw;
               order.status = 'done';
+              order.doneTime = Date.now(); // <--- 核心修改：记录成功获取验证码的时间戳
               await kv.put(oid, JSON.stringify(order));
               await addLog(order.phone, oid, 'sms_received');
               return jsonResponse({ code: raw, status: 'done' });
