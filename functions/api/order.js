@@ -202,27 +202,61 @@ export async function onRequest(context) {
       }
 
       // ========== 获取所有订单记录（含手机号与验证码） ==========
-      case 'listAllOrders': {
-        const keys = await kv.list();
-        const orders = [];
-        for (const key of keys.keys) {
-          if (key.name.startsWith('__') || key.name === POOL_KEY || key.name === LOG_KEY || key.name === CARD_KEY) continue;
-          
-          const order = await kv.get(key.name, { type: 'json' });
-          if (order) {
-            orders.push({
-              oid: key.name,
-              phone: order.phone || '---',
-              assignedPhone: order.assignedPhone || '',
-              status: order.status || 'new',
-              code: order.code || '',
-              expire: order.expire || null,
-            });
-          }
-        }
-        orders.sort((a, b) => b.oid.localeCompare(a.oid));
-        return jsonResponse({ orders });
+      // ========== 获取订单记录（分页 + 并发读取，100 条/页） ==========
+case 'listAllOrders': {
+  const cursor = url.searchParams.get('cursor') || null;
+  const limit = Math.min(parseInt(url.searchParams.get('limit')) || 100, 200);
+
+  const listOptions = { limit, reverse: true };
+  if (cursor) listOptions.cursor = cursor;
+
+  const listRes = await kv.list(listOptions);
+
+  const validKeys = listRes.keys.filter(k =>
+    !k.name.startsWith('__') &&
+    k.name !== POOL_KEY &&
+    k.name !== LOG_KEY &&
+    k.name !== CARD_KEY
+  );
+
+  // 每批 50 条并发读取，避免串行 100 次网络往返
+  const BATCH_SIZE = 50;
+  const orders = [];
+  for (let i = 0; i < validKeys.length; i += BATCH_SIZE) {
+    const batch = validKeys.slice(i, i + BATCH_SIZE);
+    const batchResults = await Promise.all(
+      batch.map(k =>
+        kv.get(k.name, { type: 'json' }).catch(e => {
+          console.error(`读取订单 ${k.name} 失败:`, e);
+          return null;
+        })
+      )
+    );
+    batch.forEach((k, idx) => {
+      const order = batchResults[idx];
+      if (order) {
+        orders.push({
+          oid: k.name,
+          phone: order.phone || '---',
+          assignedPhone: order.assignedPhone || '',
+          status: order.status || 'new',
+          code: order.code || '',
+          expire: order.expire || null,
+          doneTime: order.doneTime || null,
+        });
       }
+    });
+  }
+
+  // KV 已用 reverse: true 逆序返回，保险起见再按订单号排一次
+  orders.sort((a, b) => b.oid.localeCompare(a.oid));
+
+  return jsonResponse({
+    orders,
+    cursor: listRes.cursor || null,
+    list_complete: !!listRes.list_complete,
+  });
+}
 
       // ========== 一键释放全部活跃订单 ==========
       case 'releaseAllOrders': {
