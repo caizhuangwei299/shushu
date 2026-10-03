@@ -205,11 +205,9 @@ export async function onRequest(context) {
           const tokenStr = await getValidToken();
           const cancelUrl = `https://${HAOZHU.server}/sms/?api=cancelRecv&token=${tokenStr}&sid=${HAOZHU.sid}&phone=${encodeURIComponent(phone)}`;
           
-          // 使用带超时的 fetch
           const cancelResp = await fetchWithTimeout(cancelUrl);
           const cancelData = await cancelResp.json();
 
-          // 🟢 修复：只有平台明确表示释放成功（或返回成功），才修改本地状态
           if (cancelData.code == 0 || cancelData.msg?.includes('成功')) {
             let pool = await getPool();
             const pEntry = pool.find(p => p.phone === phone);
@@ -239,7 +237,6 @@ export async function onRequest(context) {
       }
 
       case 'listActiveOrders': {
-        // 🟢 修复：彻底抛弃全表扫描，直接读取内存级索引
         let activeIndex = await kv.get(ACTIVE_INDEX_KEY, { type: 'json' }) || {};
         const now = Date.now();
         let changed = false;
@@ -248,7 +245,6 @@ export async function onRequest(context) {
         for (const oid in activeIndex) {
           const item = activeIndex[oid];
           if (item.expire && now >= item.expire) {
-            // 惰性清理已过期的活跃订单
             delete activeIndex[oid];
             changed = true;
           } else {
@@ -300,6 +296,8 @@ export async function onRequest(context) {
                 code: order.code || '',
                 expire: order.expire || null,
                 doneTime: order.doneTime || null,
+                createdAt: order.createdAt || null,             // 👈 新增：返回创建时间
+                phoneAssignedAt: order.phoneAssignedAt || null  // 👈 新增：返回获取号码时间
               });
             }
           });
@@ -349,6 +347,7 @@ export async function onRequest(context) {
           expire: null,
           code: null,
           fromPool: false,
+          createdAt: Date.now(), // 👈 新增：记录订单创建时间
           filters: { ascription, paragraph, exclude, isp, province, uid } 
         };
         await kv.put(oid, JSON.stringify(newOrder));
@@ -521,13 +520,12 @@ export async function onRequest(context) {
         return jsonResponse({ logs: logs.reverse() });
       }
 
-      // ============ status：核心改动 ============
+      // ============ status ============
       case 'status': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) {
           return jsonResponse({ status: 'invalid', phone: null, expire: null, code: null });
         }
-        // 惰性过期检测：若 active 且已超时 → 释放号码 + 标记 expired
         if (order.expire && order.status === 'active' && Date.now() >= order.expire) {
           await releaseOrderPhone(order, oid);
           order.status = 'expired';
@@ -539,7 +537,7 @@ export async function onRequest(context) {
         return jsonResponse(order);
       }
 
-      // ============ getPhone：核心改动 ============
+      // ============ getPhone ============
       case 'getPhone': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) {
@@ -548,7 +546,6 @@ export async function onRequest(context) {
         if (order.status === 'done') return jsonResponse({ error: '订单已完成' }, 403);
         if (order.status === 'released') return jsonResponse({ error: '订单已被管理员释放' }, 403);
         
-        // 场景 A：expired 状态 → 重置为 new，允许用户拿新号
         if (order.status === 'expired') {
           order.status = 'new';
           order.phone = null;
@@ -558,12 +555,10 @@ export async function onRequest(context) {
           await kv.put(oid, JSON.stringify(order));
         }
         
-        // 场景 B：active 且未过期 → 复用现有号码
         if (order.status === 'active' && order.expire && Date.now() < order.expire) {
           return jsonResponse({ phone: order.phone, expire: order.expire });
         }
         
-        // 场景 C：active 但已过期 → 释放并重置
         if (order.status === 'active' && order.expire && Date.now() >= order.expire) {
           await releaseOrderPhone(order, oid);
           order.status = 'new';
@@ -574,7 +569,6 @@ export async function onRequest(context) {
           await kv.put(oid, JSON.stringify(order));
         }
 
-        // 场景 D：旧号还在池里但订单已不是 active → 释放
         if (order.phone && order.fromPool) {
           let pool = await getPool();
           const entry = pool.find(p => p.phone === order.phone);
@@ -600,8 +594,9 @@ export async function onRequest(context) {
             order.status = 'active';
             order.code = null;
             order.fromPool = false;
+            order.phoneAssignedAt = Date.now(); // 👈 新增：记录获取时间
             await kv.put(oid, JSON.stringify(order));
-            await updateActiveIndex(oid, realPhone, order.expire); // 写入活跃索引
+            await updateActiveIndex(oid, realPhone, order.expire);
             return jsonResponse({ phone: realPhone, expire: order.expire });
           } else {
             return jsonResponse({ error: '获取指定手机号失败：' + (phoneData.msg || '平台无该号或已被占用') }, 400);
@@ -632,10 +627,11 @@ export async function onRequest(context) {
             expire, 
             status: 'active', 
             code: null, 
-            fromPool: true 
+            fromPool: true,
+            phoneAssignedAt: Date.now() // 👈 新增：记录获取时间
           };
           await kv.put(oid, JSON.stringify(newOrder));
-          await updateActiveIndex(oid, phone, expire); // 写入活跃索引
+          await updateActiveIndex(oid, phone, expire);
           return jsonResponse({ phone, expire });
         }
 
@@ -659,16 +655,17 @@ export async function onRequest(context) {
             expire: Date.now() + PHONE_TTL_MS,
             status: 'active',
             code: null,
-            fromPool: false
+            fromPool: false,
+            phoneAssignedAt: Date.now() // 👈 新增：记录获取时间
           };
           await kv.put(oid, JSON.stringify(newOrder));
-          await updateActiveIndex(oid, phone, newOrder.expire); // 写入活跃索引
+          await updateActiveIndex(oid, phone, newOrder.expire);
           return jsonResponse({ phone, expire: newOrder.expire });
         }
         return jsonResponse({ error: phoneData.msg || '取号失败' }, 500);
       }
 
-      // ============ release：复用辅助函数 ============
+      // ============ release ============
       case 'release': {
         let order = await kv.get(oid, { type: 'json' });
         if (!order) return jsonResponse({ error: '订单不存在' }, 404);
@@ -685,12 +682,11 @@ export async function onRequest(context) {
         return jsonResponse({ success: true });
       }
 
-      // ============ getSMS：加入惰性过期检测与精准提取 ============
+      // ============ getSMS ============
       case 'getSMS': {
         const order = await kv.get(oid, { type: 'json' });
         if (!order) return jsonResponse({ error: '订单不存在' }, 404);
         
-        // 惰性过期：先释放，再返回 expired 状态
         if (order.status === 'active' && order.expire && Date.now() >= order.expire) {
           await releaseOrderPhone(order, oid);
           order.status = 'expired';
@@ -711,7 +707,6 @@ export async function onRequest(context) {
         if (smsData.code == 0) {
           const raw = smsData.sms || smsData.Sms || smsData.message || smsData.code_text || '';
           if (raw) {
-            // 🟢 精准提取 4-6 位独立数字验证码
             const match = raw.match(/(?<!\d)(\d{4,6})(?!\d)/);
             if (match) {
               order.code = match[1];
@@ -719,7 +714,6 @@ export async function onRequest(context) {
               order.doneTime = Date.now();
               await kv.put(oid, JSON.stringify(order));
               
-              // 订单完成，从活跃列表中移除
               await removeFromActiveIndex(oid);
               await addLog(order.phone, oid, 'sms_received');
               
