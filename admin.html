@@ -456,7 +456,7 @@
                 <div class="ios-card-header">
                     <span class="ios-card-title"><span class="emoji">📲</span> 已获取手机号订单</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                        <button class="btn btn-secondary btn-sm" onclick="loadActiveOrders()">刷新</button>
+                        <button class="btn btn-secondary btn-sm" onclick="loadActiveOrders(false)">刷新</button>
                         <button class="btn btn-danger btn-sm" onclick="releaseAllOrders()">一键释放</button>
                     </div>
                 </div>
@@ -469,7 +469,7 @@
             <div class="ios-card">
                 <div class="ios-card-header">
                     <span class="ios-card-title"><span class="emoji">📋</span> 验证码记录</span>
-                    <button class="btn btn-secondary btn-sm" onclick="loadLogs()">刷新</button>
+                    <button class="btn btn-secondary btn-sm" onclick="loadLogs(false)">刷新</button>
                 </div>
                 <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px;">手机号 · 时间</div>
                 <div class="ios-list" id="logListContainer">
@@ -524,7 +524,6 @@
         (function() {
             'use strict';
 
-            // ⭐ 改动 1：API_BASE 改为相对路径，删除 BUYER_PAGE 常量
             const API_BASE = '/api/order';
             const ADMIN_PASSWORD = 'shinia299.';  // 管理密码
 
@@ -546,6 +545,21 @@
                 }, duration);
             }
 
+            // ===== 带超时功能的 fetch，防止后端卡死导致前端一直加载中 =====
+            async function fetchWithTimeout(url, timeout = 5000) {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                try {
+                    const response = await fetch(url, { signal: controller.signal });
+                    clearTimeout(id);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    clearTimeout(id);
+                    throw error;
+                }
+            }
+
             // ===== Tab 切换 =====
             window.switchTab = function(targetId, element) {
                 const views = document.querySelectorAll('.view');
@@ -559,8 +573,29 @@
                 const activeView = document.getElementById(targetId);
                 activeView.scrollTop = 0;
 
+                // ===== 记录页逻辑优化 =====
                 if (targetId === 'tab-record') {
-                    if (typeof ensureRecordData === 'function') ensureRecordData();
+                    // 1. 立即渲染缓存数据（如果有），实现瞬间打开
+                    if (window.cachedActiveOrders && window.cachedActiveOrders.length > 0) window.renderActiveOrders(window.cachedActiveOrders);
+                    if (window.cachedLogs && window.cachedLogs.length > 0) window.renderLogs(window.cachedLogs);
+
+                    // 2. 后台静默获取最新数据
+                    window.loadActiveOrders(true);
+                    window.loadLogs(true);
+
+                    // 3. 启动实时轮询（每 2 秒刷新一次）
+                    if (!window.recordPollingTimer) {
+                        window.recordPollingTimer = setInterval(() => {
+                            window.loadActiveOrders(true);
+                            window.loadLogs(true);
+                        }, 2000);
+                    }
+                } else {
+                    // 离开记录页时，停止轮询，节省性能和流量
+                    if (window.recordPollingTimer) {
+                        clearInterval(window.recordPollingTimer);
+                        window.recordPollingTimer = null;
+                    }
                 }
             };
 
@@ -609,7 +644,7 @@
                     loginError.classList.add('hidden');
                     initAdmin();
                     showToast('✅ 登录成功');
-                    setTimeout(() => fetchBalance(true), 500);
+                    setTimeout(() => window.fetchBalance(true), 500);
                 } else {
                     loginError.classList.remove('hidden');
                     loginPass.value = '';
@@ -624,6 +659,11 @@
                 loginBox.classList.remove('hidden');
                 loginPass.value = '';
                 loginError.classList.add('hidden');
+                // 清除轮询
+                if (window.recordPollingTimer) {
+                    clearInterval(window.recordPollingTimer);
+                    window.recordPollingTimer = null;
+                }
                 showToast('已退出');
             };
 
@@ -633,18 +673,16 @@
                 loginBox.classList.add('hidden');
                 adminBox.classList.remove('hidden');
                 initAdmin();
-                setTimeout(() => fetchBalance(true), 500);
+                setTimeout(() => window.fetchBalance(true), 500);
             }
 
             function initAdmin() {
-                // ===== 记录页懒加载：脏标记 =====
-                let activeOrdersDirty = true;
-                let logsDirty = true;
-
-                window.ensureRecordData = function() {
-                    if (activeOrdersDirty) loadActiveOrders();
-                    if (logsDirty) loadLogs();
-                };
+                // ===== 全局变量挂载到 window，方便 switchTab 调用 =====
+                window.recordPollingTimer = null;
+                window.cachedActiveOrders = [];
+                window.cachedLogs = [];
+                window.isFetchingActiveOrders = false;
+                window.isFetchingLogs = false;
 
                 // ===== 配置读取与合并 =====
                 function getStoredConfig() {
@@ -770,7 +808,6 @@
                     if (!data.success) {
                         throw new Error(data.error || '创建订单失败');
                     }
-                    // ⭐ 改动 2：去掉 index.html，直接使用根路径
                     return location.origin + '/?oid=' + oid;
                 }
 
@@ -816,7 +853,8 @@
                         showOrderResult(`✅ 指定号码 [${phone}] 订单已创建`, link);
                         phoneInput.value = '';
                         showToast('✅ 指定号码订单已创建');
-                        activeOrdersDirty = true;
+                        // 创建成功后，直接触发一次静默刷新，以便在记录页第一时间看到
+                        window.loadActiveOrders(true);
                     } catch(e) {
                         showToast('⚠️ ' + e.message);
                     }
@@ -837,7 +875,8 @@
                             resultDiv.textContent = '✅ 该链接已被释放';
                             resultDiv.className = 'alert alert-success';
                             showToast('✅ 已释放订单 ' + oidToLock);
-                            activeOrdersDirty = true;
+                            // 释放后刷新列表
+                            window.loadActiveOrders(true);
                         } else {
                             resultDiv.textContent = '❌ ' + (data.error || '操作失败');
                             resultDiv.className = 'alert alert-error';
@@ -869,36 +908,103 @@
                     document.body.removeChild(ta);
                 }
 
-                window.loadActiveOrders = async function() {
+                // ===== 渲染函数 =====
+                window.renderActiveOrders = function(orders) {
                     const container = document.getElementById('activeOrderList');
-                    container.innerHTML = '<div class="list-empty">⏳ 加载中…</div>';
+                    if (!orders || orders.length === 0) {
+                        container.innerHTML = '<div class="list-empty">暂无活跃订单</div>';
+                        return;
+                    }
+                    container.innerHTML = orders.map(order => `
+                        <div class="ios-list-item">
+                            <div class="left">
+                                <span class="oid">${order.oid}</span>
+                                <span class="phone">${order.phone || '无手机号'}</span>
+                                <span class="badge badge-inuse">活跃</span>
+                            </div>
+                            <div class="right">
+                                <button class="btn btn-danger btn-sm" onclick="lockOrder('${order.oid}')" style="padding:4px 10px;font-size:11px;min-height:24px;">释放</button>
+                            </div>
+                        </div>`).join('');
+                }
+
+                window.renderLogs = function(logs) {
+                    const container = document.getElementById('logListContainer');
+                    if (!logs || logs.length === 0) {
+                        container.innerHTML = '<div class="list-empty">暂无验证码记录</div>';
+                        return;
+                    }
+                    container.innerHTML = logs.map(log => {
+                        const phone = log.phone || '未知';
+                        const time = log.time ? new Date(log.time).toLocaleString('zh-CN', { hour12: false }) : '—';
+                        return `<div class="ios-list-item">
+                            <div class="left"><span class="phone">${phone}</span></div>
+                            <div class="right"><span class="time" style="color:var(--text-tertiary);font-size:12px;">${time}</span></div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // ===== 数据获取函数 (支持静默获取) =====
+                window.loadActiveOrders = async function(isSilent = false) {
+                    if (window.isFetchingActiveOrders) return; // 防止并发请求
+                    window.isFetchingActiveOrders = true;
+                    const container = document.getElementById('activeOrderList');
+
+                    // 只有非静默（主动点击刷新）且没有缓存时，才显示加载中
+                    if (!isSilent && window.cachedActiveOrders.length === 0) {
+                        container.innerHTML = '<div class="list-empty">⏳ 加载中…</div>';
+                    }
 
                     try {
-                        const resp = await fetch(`${API_BASE}?action=listActiveOrders`);
-                        const data = await resp.json();
-
-                        activeOrdersDirty = false;
-
-                        if (!data.orders || data.orders.length === 0) {
-                            container.innerHTML = '<div class="list-empty">暂无活跃订单</div>';
-                            return;
+                        const data = await fetchWithTimeout(`${API_BASE}?action=listActiveOrders`, 5000);
+                        const newOrders = data.orders || [];
+                        
+                        // 数据比对，仅当数据变化时才重新渲染，避免闪烁
+                        if (JSON.stringify(newOrders) !== JSON.stringify(window.cachedActiveOrders)) {
+                            window.cachedActiveOrders = newOrders;
+                            window.renderActiveOrders(newOrders);
                         }
-                        container.innerHTML = data.orders.map(order => {
-                            return `<div class="ios-list-item">
-                                <div class="left">
-                                    <span class="oid">${order.oid}</span>
-                                    <span class="phone">${order.phone || '无手机号'}</span>
-                                    <span class="badge badge-inuse">活跃</span>
-                                </div>
-                                <div class="right">
-                                    <button class="btn btn-danger btn-sm" onclick="lockOrder('${order.oid}')" style="padding:4px 10px;font-size:11px;min-height:24px;">释放</button>
-                                </div>
-                            </div>`;
-                        }).join('');
                     } catch(e) {
-                        container.innerHTML = '<div class="list-empty" style="color:var(--danger);">加载失败，请刷新</div>';
+                        console.error('加载订单失败:', e);
+                        if (!isSilent || window.cachedActiveOrders.length === 0) {
+                            container.innerHTML = `
+                                <div class="list-empty" style="color:var(--danger);">
+                                    加载失败: ${e.name === 'AbortError' ? '请求超时' : '网络异常'} 
+                                    <br><br>
+                                    <button class="btn btn-secondary btn-sm" onclick="loadActiveOrders(false)">点击重试</button>
+                                </div>`;
+                        }
+                    } finally {
+                        window.isFetchingActiveOrders = false;
                     }
-                }
+                };
+
+                window.loadLogs = async function(isSilent = false) {
+                    if (window.isFetchingLogs) return;
+                    window.isFetchingLogs = true;
+                    const container = document.getElementById('logListContainer');
+
+                    if (!isSilent && window.cachedLogs.length === 0) {
+                        container.innerHTML = '<div class="list-empty">⏳ 加载中…</div>';
+                    }
+
+                    try {
+                        const logData = await fetchWithTimeout(`${API_BASE}?action=logList`, 5000);
+                        const newLogs = logData.logs || [];
+
+                        if (JSON.stringify(newLogs) !== JSON.stringify(window.cachedLogs)) {
+                            window.cachedLogs = newLogs;
+                            window.renderLogs(newLogs);
+                        }
+                    } catch(e) {
+                        console.error('加载日志失败:', e);
+                        if (!isSilent || window.cachedLogs.length === 0) {
+                            container.innerHTML = '<div class="list-empty" style="color:var(--danger);">加载失败，请刷新</div>';
+                        }
+                    } finally {
+                        window.isFetchingLogs = false;
+                    }
+                };
 
                 window.releaseAllOrders = async function() {
                     if (!confirm('确定释放所有已获取手机号的订单吗？此操作不可撤销！')) return;
@@ -907,7 +1013,7 @@
                         const data = await resp.json();
                         if (data.success) {
                             showToast('✅ 已全部释放');
-                            loadActiveOrders();
+                            window.loadActiveOrders(true);
                         } else {
                             showToast('⚠️ ' + (data.error || '操作失败'));
                         }
@@ -916,33 +1022,6 @@
                     }
                 };
 
-                window.loadLogs = async function() {
-                    const container = document.getElementById('logListContainer');
-                    try {
-                        const logResp = await fetch(`${API_BASE}?action=logList`);
-                        const logData = await logResp.json();
-                        const logs = logData.logs || [];
-
-                        logsDirty = false;
-
-                        if (logs.length === 0) {
-                            container.innerHTML = '<div class="list-empty">暂无验证码记录</div>';
-                            return;
-                        }
-
-                        container.innerHTML = logs.map(log => {
-                            const phone = log.phone || '未知';
-                            const time = log.time ? new Date(log.time).toLocaleString('zh-CN', { hour12: false }) : '—';
-                            return `<div class="ios-list-item">
-                                <div class="left"><span class="phone">${phone}</span></div>
-                                <div class="right"><span class="time" style="color:var(--text-tertiary);font-size:12px;">${time}</span></div>
-                            </div>`;
-                        }).join('');
-                    } catch(e) {
-                        container.innerHTML = '<div class="list-empty" style="color:var(--danger);">加载失败，请刷新</div>';
-                    }
-                }
-
                 // silent = true 时不弹 toast（自动刷新用）
                 window.fetchBalance = async function(silent) {
                     const amountEl = document.getElementById('balanceAmount');
@@ -950,8 +1029,7 @@
                     amountEl.textContent = '...';
                     errorEl.classList.add('hidden');
                     try {
-                        const resp = await fetch(`${API_BASE}?action=getBalance`);
-                        const data = await resp.json();
+                        const data = await fetchWithTimeout(`${API_BASE}?action=getBalance`, 5000);
                         if (data.balance !== undefined) {
                             amountEl.textContent = data.balance;
                             if (!silent) showToast('✅ 余额已更新');
@@ -966,9 +1044,6 @@
                         errorEl.classList.remove('hidden');
                     }
                 };
-
-                activeOrdersDirty = true;
-                logsDirty = true;
             }
 
         })();
