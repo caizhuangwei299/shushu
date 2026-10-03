@@ -220,7 +220,6 @@
                 <div class="order-id" id="orderIdDisplay"></div>
             </div>
 
-            <!-- 🔒 订单已被释放 - 锁定状态 -->
             <div id="lockedBox" class="hidden">
                 <div class="locked-banner">
                     <span class="icon">🔒</span>
@@ -230,10 +229,8 @@
                 <button class="btn btn-secondary" onclick="location.reload()">🔄 刷新页面</button>
             </div>
 
-            <!-- 状态栏 -->
             <div id="statusBox"></div>
 
-            <!-- 初始状态 -->
             <div id="initBox">
                 <div style="background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.25); border-radius: var(--radius-sm); padding: 16px 14px; margin-bottom: 24px; text-align: center;">
                     <div style="color: var(--danger); font-weight: 700; font-size: 15px; line-height: 1.6; letter-spacing: 0.5px;">
@@ -248,7 +245,6 @@
                 <p class="text-tertiary" style="margin-top: 16px;">点击后获取手机号，有效期 90 秒</p>
             </div>
 
-            <!-- 活跃状态（获取手机号后） -->
             <div id="phoneBox" class="hidden">
                 <div class="info-card">
                     <div class="label">手机号码</div>
@@ -256,7 +252,6 @@
                 </div>
                 <button class="btn-copy" onclick="copyPhone()">复制手机号</button>
 
-                <!-- 警告提示 -->
                 <div style="margin-top: 18px; padding: 16px 12px; background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.25); border-radius: var(--radius-sm); text-align: center;">
                     <span style="color: var(--danger); font-weight: 700; font-size: 16px; line-height: 1.6; display: inline-block;">
                         耐心等待接收验证码<br>
@@ -279,20 +274,18 @@
                     <span class="poll-count" id="pollCount"></span>
                 </div>
                 <p class="text-quaternary" style="margin-top: 8px;">自动检测中，收到验证码将自动显示</p>
-                
+
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
                     释放手机号，重新获取（90秒后可操作）
                 </button>
             </div>
 
-            <!-- 超时状态（90秒到期自动释放后显示） -->
             <div id="timeoutBox" class="hidden">
                 <div class="status-text status-warning">⏰ 手机号已过期（90秒未收到验证码）</div>
                 <p class="text-tertiary" style="margin-top: 8px;">号码已自动释放，请重新获取新号码</p>
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtnTimeout" style="margin-top: 16px;">重新获取手机号</button>
             </div>
 
-            <!-- 完成状态（收到验证码） -->
             <div id="doneBox" class="hidden">
                 <div class="done-banner">
                     <span class="icon">✅</span>
@@ -310,14 +303,12 @@
                 <p class="text-tertiary" style="margin-top: 20px; color: var(--danger);">🔒 此订单已完成，链接永久失效。</p>
             </div>
 
-            <!-- 错误状态 -->
             <div id="errorBox" class="hidden">
                 <div class="status-text status-error" id="errorMessage"></div>
                 <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">🔄 重试</button>
             </div>
         </div>
 
-        <!-- 联系方式 -->
         <div class="contact-footer" onclick="copyWx()" title="点击复制微信号">
             购买加速器账号可直接联系V：1113630283
         </div>
@@ -327,7 +318,8 @@
         (function() {
             'use strict';
 
-            const API_BASE = 'https://order-api-5t3.pages.dev/api/order';
+            // ⭐ 改动 1：改成相对路径
+            const API_BASE = '/api/order';
             const TIMEOUT_SEC = 90;
             const POLL_INTERVAL = 4000;
             const MAX_RETRIES = 30;
@@ -426,7 +418,8 @@
             };
 
             async function apiCall(action, params = {}) {
-                const url = new URL(API_BASE);
+                // ⭐ 改动 2：用 location.origin 拼出完整 URL（相对路径兼容）
+                const url = new URL(API_BASE, location.origin);
                 url.searchParams.set('action', action);
                 url.searchParams.set('oid', currentOid);
                 url.searchParams.set('sid', currentSid);
@@ -490,7 +483,6 @@
                 setStatus('验证码已收到', 'success');
             }
 
-            // ⭐ 修复：进入超时页时启用"重新获取"按钮
             function handleExpired() {
                 isOrderExpired = true;
                 stopAllTimers();
@@ -543,7 +535,6 @@
                             }
                         }
 
-                        // ⭐ 修复：轮询兜底超时也启用按钮
                         if (pollAttempts >= MAX_RETRIES) {
                             stopAllTimers();
                             enableGetButtons();
@@ -651,7 +642,6 @@
                         return;
                     }
 
-                    // ⭐ 修复：进入超时页时启用按钮
                     if (data.status === 'expired') {
                         enableGetButtons();
                         showUI('timeout');

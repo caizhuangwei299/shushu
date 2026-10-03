@@ -128,7 +128,7 @@
             border: var(--card-border);
             border-radius: var(--radius);
             box-shadow: var(--card-shadow);
-            padding: 16px 16px 18px; /* 稍微减少内边距让其更紧凑 */
+            padding: 16px 16px 18px;
             margin-bottom: 12px;
             transition: box-shadow var(--transition);
         }
@@ -524,8 +524,8 @@
         (function() {
             'use strict';
 
-            const BUYER_PAGE = 'index.html';
-            const API_BASE = 'https://order-api-5t3.pages.dev/api/order'; // 第二个项目域名，保持不变
+            // ⭐ 改动 1：API_BASE 改为相对路径，删除 BUYER_PAGE 常量
+            const API_BASE = '/api/order';
             const ADMIN_PASSWORD = 'shinia299.';  // 管理密码
 
             const loginBox = document.getElementById('loginBox');
@@ -560,7 +560,6 @@
                 activeView.scrollTop = 0;
 
                 if (targetId === 'tab-record') {
-                    // 懒加载：仅在数据脏（未加载/已失效）时才请求
                     if (typeof ensureRecordData === 'function') ensureRecordData();
                 }
             };
@@ -610,7 +609,7 @@
                     loginError.classList.add('hidden');
                     initAdmin();
                     showToast('✅ 登录成功');
-                    setTimeout(() => fetchBalance(true), 500);   // silent = true
+                    setTimeout(() => fetchBalance(true), 500);
                 } else {
                     loginError.classList.remove('hidden');
                     loginPass.value = '';
@@ -634,7 +633,7 @@
                 loginBox.classList.add('hidden');
                 adminBox.classList.remove('hidden');
                 initAdmin();
-                setTimeout(() => fetchBalance(true), 500);   // silent = true
+                setTimeout(() => fetchBalance(true), 500);
             }
 
             function initAdmin() {
@@ -771,7 +770,8 @@
                     if (!data.success) {
                         throw new Error(data.error || '创建订单失败');
                     }
-                    return location.origin + '/' + BUYER_PAGE + '?oid=' + oid;
+                    // ⭐ 改动 2：去掉 index.html，直接使用根路径
+                    return location.origin + '/?oid=' + oid;
                 }
 
                 // 统一的结果渲染
@@ -816,7 +816,7 @@
                         showOrderResult(`✅ 指定号码 [${phone}] 订单已创建`, link);
                         phoneInput.value = '';
                         showToast('✅ 指定号码订单已创建');
-                        activeOrdersDirty = true;   // 标记记录页需刷新，不立即请求
+                        activeOrdersDirty = true;
                     } catch(e) {
                         showToast('⚠️ ' + e.message);
                     }
@@ -837,7 +837,7 @@
                             resultDiv.textContent = '✅ 该链接已被释放';
                             resultDiv.className = 'alert alert-success';
                             showToast('✅ 已释放订单 ' + oidToLock);
-                            activeOrdersDirty = true;   // 标记记录页需刷新，不立即请求
+                            activeOrdersDirty = true;
                         } else {
                             resultDiv.textContent = '❌ ' + (data.error || '操作失败');
                             resultDiv.className = 'alert alert-error';
@@ -877,7 +877,7 @@
                         const resp = await fetch(`${API_BASE}?action=listActiveOrders`);
                         const data = await resp.json();
 
-                        activeOrdersDirty = false;   // 加载成功，清除脏标记
+                        activeOrdersDirty = false;
 
                         if (!data.orders || data.orders.length === 0) {
                             container.innerHTML = '<div class="list-empty">暂无活跃订单</div>';
@@ -907,7 +907,7 @@
                         const data = await resp.json();
                         if (data.success) {
                             showToast('✅ 已全部释放');
-                            loadActiveOrders();   // 用户正在记录页，刷新合理
+                            loadActiveOrders();
                         } else {
                             showToast('⚠️ ' + (data.error || '操作失败'));
                         }
@@ -923,7 +923,7 @@
                         const logData = await logResp.json();
                         const logs = logData.logs || [];
 
-                        logsDirty = false;   // 加载成功，清除脏标记
+                        logsDirty = false;
 
                         if (logs.length === 0) {
                             container.innerHTML = '<div class="list-empty">暂无验证码记录</div>';
@@ -967,8 +967,6 @@
                     }
                 };
 
-                // ❌ 原代码在这里无条件调用 loadLogs() / loadActiveOrders()
-                // ✅ 改为懒加载：仅在首次切到「记录」页时才请求
                 activeOrdersDirty = true;
                 logsDirty = true;
             }

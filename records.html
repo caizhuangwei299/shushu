@@ -338,11 +338,12 @@
         (function() {
             'use strict';
 
-            const API_BASE = 'https://order-api-5t3.pages.dev/api/order';
+            // ⭐ 改动：API_BASE 改为相对路径
+            const API_BASE = '/api/order';
             const PAGE_SIZE = 100;
 
             let allRecords = [];
-            let cursorStack = [null]; // cursorStack[i] = 第 i+1 页的起始 cursor
+            let cursorStack = [null];
             let currentPageIndex = 0;
             let hasMore = false;
 
@@ -433,7 +434,7 @@
                 recordList.innerHTML = `<div class="empty-state"><span class="icon">⏳</span>正在加载第 ${pageIndex + 1} 页...</div>`;
 
                 try {
-                    const url = new URL(API_BASE);
+                    const url = new URL(API_BASE, location.origin);
                     url.searchParams.set('action', 'listAllOrders');
                     url.searchParams.set('limit', PAGE_SIZE);
                     if (cursor) url.searchParams.set('cursor', cursor);
@@ -451,7 +452,6 @@
 
                     if (!data.orders) throw new Error(data.error || '数据格式错误');
 
-                    // 更新 cursor 栈
                     if (!data.list_complete && data.cursor) {
                         hasMore = true;
                         if (cursorStack.length <= pageIndex + 1) {
@@ -483,7 +483,6 @@
 
             // ===== 对外接口 =====
             window.loadRecords = function() {
-                // 刷新：保持当前页
                 return loadPage(currentPageIndex);
             };
 
