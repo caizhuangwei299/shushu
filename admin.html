@@ -32,10 +32,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        html {
-            height: 100%;
-            overflow: hidden;
-        }
+        html { height: 100%; overflow: hidden; }
 
         body {
             font-family: var(--font);
@@ -58,20 +55,10 @@
 
         /* ===== 登录框 ===== */
         #loginBox {
-            max-width: 360px;
-            width: calc(100% - 24px);
-            padding: 32px 24px;
-            background: var(--card-bg);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: var(--card-border);
-            border-radius: var(--radius);
-            box-shadow: var(--card-shadow);
-            text-align: center;
-            margin: 16px auto;
-            max-height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            max-width: 360px; width: calc(100% - 24px); padding: 32px 24px;
+            background: var(--card-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow);
+            text-align: center; margin: 16px auto; max-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
         #loginBox .logo { font-size: 32px; margin-bottom: 8px; }
         #loginBox .sub { color: var(--text-tertiary); font-size: 15px; margin-bottom: 24px; font-weight: 500; }
@@ -94,27 +81,14 @@
 
         /* ===== 主容器 ===== */
         #adminBox {
-            width: 100%;
-            max-width: 600px;
-            height: 100%;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: transparent;
-            margin: 0 auto;
+            width: 100%; max-width: 600px; height: 100%; position: relative;
+            display: flex; flex-direction: column; overflow: hidden; background: transparent; margin: 0 auto;
         }
 
         .view {
-            display: none;
-            flex: 1 1 auto;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
-            padding: 16px 12px 20px;
-            scrollbar-width: thin;
+            display: none; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+            padding: 16px 12px 20px; scrollbar-width: thin;
         }
         .view.active { display: block; }
         .view::-webkit-scrollbar { width: 4px; }
@@ -122,15 +96,9 @@
 
         /* ===== 卡片 ===== */
         .ios-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: var(--card-border);
-            border-radius: var(--radius);
-            box-shadow: var(--card-shadow);
-            padding: 16px 16px 18px;
-            margin-bottom: 12px;
-            transition: box-shadow var(--transition);
+            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow);
+            padding: 16px 16px 18px; margin-bottom: 12px; transition: box-shadow var(--transition);
         }
         .ios-card:last-child { margin-bottom: 0; }
         .ios-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -139,12 +107,7 @@
         .ios-card-sub { font-size: 12px; color: var(--text-tertiary); font-weight: 400; }
 
         /* ===== 顶部管理卡片 ===== */
-        .admin-header-card {
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+        .admin-header-card { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
         .admin-header-left { display: flex; flex-direction: column; gap: 4px; }
         .admin-header-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
         .admin-balance-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
@@ -155,8 +118,7 @@
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border: none;
             border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: var(--font);
-            letter-spacing: 0.2px; white-space: nowrap; min-height: 36px;
-            touch-action: manipulation;
+            letter-spacing: 0.2px; white-space: nowrap; min-height: 36px; touch-action: manipulation;
         }
         .btn:active { transform: scale(0.96); }
         .btn-primary { background: linear-gradient(135deg, var(--primary), #0056b3); color: #fff; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25); }
@@ -181,22 +143,11 @@
         .form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,122,255,0.10); background: #fff; }
         .form-group input::placeholder { color: var(--text-quaternary); }
 
-        /* 两列表单布局 */
-        .form-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .form-grid-2 .form-group.full-width {
-            grid-column: span 2;
-        }
-
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-grid-2 .form-group.full-width { grid-column: span 2; }
         .batch-row { display: flex; gap: 8px; align-items: flex-end; }
         .batch-row .form-group { flex: 1; margin-bottom: 0; }
         .batch-row .btn { flex-shrink: 0; padding: 8px 16px; min-height: 36px; }
-
-        /* ===== 分割线 ===== */
-        .ios-divider { border: none; border-top: 1px solid var(--separator); margin: 14px 0 12px; }
 
         /* ===== Alert ===== */
         .alert { padding: 8px 12px; border-radius: var(--radius-sm); font-size: 12px; margin-top: 8px; line-height: 1.5; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
@@ -208,12 +159,10 @@
         .order-link-box {
             background: rgba(255, 255, 255, 0.5); border-radius: var(--radius-sm); padding: 10px 12px; margin: 8px 0 6px;
             font-size: 12px; line-height: 1.5; word-break: break-all; max-height: 100px; overflow-y: auto; white-space: pre-wrap;
-            color: var(--text-secondary); border: 1px solid rgba(255, 255, 255, 0.9); font-family: var(--font);
-            -webkit-overflow-scrolling: touch;
+            color: var(--text-secondary); border: 1px solid rgba(255, 255, 255, 0.9); font-family: var(--font); -webkit-overflow-scrolling: touch;
         }
         .order-link-box::-webkit-scrollbar { width: 4px; }
         .order-link-box::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 4px; }
-
         .btn-copy {
             background: transparent; border: 1px dashed rgba(0, 122, 255, 0.4); color: var(--primary); padding: 4px 12px;
             border-radius: 999px; font-size: 12px; cursor: pointer; transition: all var(--transition); font-family: var(--font);
@@ -224,9 +173,7 @@
         /* ===== 列表 ===== */
         .ios-list {
             background: rgba(255, 255, 255, 0.5); border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.9);
-            overflow: hidden; margin-top: 8px; max-height: 260px; overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
+            overflow: hidden; margin-top: 8px; max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
         }
         .ios-list::-webkit-scrollbar { width: 4px; }
         .ios-list::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 4px; }
@@ -240,15 +187,12 @@
         .ios-list-item .left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; flex-wrap: wrap; }
         .ios-list-item .left .phone { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
         .ios-list-item .left .oid { font-size: 11px; color: var(--text-tertiary); background: rgba(255, 255, 255, 0.6); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--separator); font-family: var(--font); white-space: nowrap; }
-        .ios-list-item .left .oid.empty { color: var(--text-quaternary); border-color: transparent; background: transparent; }
         .ios-list-item .right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap; }
-        .badge-available { background: rgba(52,199,89,0.15); color: #1d8b3c; }
         .badge-inuse { background: rgba(0,122,255,0.12); color: var(--primary); }
-        .badge-danger { background: rgba(255,59,48,0.12); color: var(--danger); }
         .list-empty { padding: 24px 12px; text-align: center; color: var(--text-tertiary); font-size: 13px; }
 
-        /* ===== 历史记录相关样式 (来自 records.html) ===== */
+        /* ===== 历史记录相关样式 ===== */
         .search-box {
             display: flex; align-items: center; background: var(--input-bg);
             border: 1px solid var(--separator); border-radius: 999px; padding: 8px 16px;
@@ -274,6 +218,9 @@
         .record-item .phone { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; }
         .record-item .oid { font-size: 12px; color: var(--text-tertiary); background: rgba(255, 255, 255, 0.8); padding: 2px 10px; border-radius: 12px; border: 1px solid var(--separator); }
         .record-item .row-2 { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-secondary); }
+        
+        /* 新增：时间记录样式 */
+        .record-item .row-3 { display: flex; justify-content: flex-end; font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 
         .badge-new { background: rgba(142, 142, 147, 0.15); color: var(--text-secondary); }
         .badge-active { background: rgba(0, 122, 255, 0.12); color: var(--primary); }
@@ -301,11 +248,9 @@
         /* ===== 底部导航栏 ===== */
         .bottom-nav {
             position: relative; flex: 0 0 auto; display: flex; justify-content: space-around; align-items: center;
-            height: 60px; height: calc(60px + env(safe-area-inset-bottom));
-            padding-bottom: 0; padding-bottom: env(safe-area-inset-bottom);
-            background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(20px) saturate(1.8);
-            -webkit-backdrop-filter: blur(20px) saturate(1.8); border-top: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05); z-index: 1000;
+            height: 60px; height: calc(60px + env(safe-area-inset-bottom)); padding-bottom: 0; padding-bottom: env(safe-area-inset-bottom);
+            background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05); z-index: 1000;
         }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8e8e93; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; flex: 1; height: 100%; touch-action: manipulation; }
         .nav-item.active { color: var(--primary); }
@@ -366,7 +311,6 @@
         
         <!-- ============ Tab 1: 接码 ============ -->
         <div id="tab-receive" class="view active">
-            <!-- 顶部管理卡片 -->
             <div class="ios-card admin-header-card">
                 <div class="admin-header-left">
                     <div class="admin-header-title">⚙️ 管理</div>
@@ -382,7 +326,6 @@
                 </div>
             </div>
 
-            <!-- 基础配置（折叠面板） -->
             <div class="ios-card">
                 <div class="ios-card-header" style="cursor: pointer; margin-bottom: 0;" onclick="toggleBaseConfig()">
                     <span class="ios-card-title"><span class="emoji">⚙️</span> 基础配置</span>
@@ -390,44 +333,28 @@
                 </div>
                 <div id="baseConfigContent" class="config-collapse hidden-content">
                     <div class="form-grid-2">
-                        <div class="form-group">
-                            <label>项目 ID (SID)</label>
-                            <input type="text" id="configSid" placeholder="24085">
-                        </div>
-                        <div class="form-group">
-                            <label>号码类型 (ascription)</label>
+                        <div class="form-group"><label>项目 ID (SID)</label><input type="text" id="configSid" placeholder="24085"></div>
+                        <div class="form-group"><label>号码类型 (ascription)</label>
                             <select id="configAscription">
                                 <option value="">不限（留空）</option>
                                 <option value="1">1 - 只取虚拟</option>
                                 <option value="2">2 - 只取实卡</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>只取号段 (paragraph)</label>
-                            <input type="text" id="configParagraph" placeholder="留空限制，如133">
-                        </div>
-                        <div class="form-group">
-                            <label>排除号段 (exclude)</label>
-                            <input type="text" id="configExclude" placeholder="留空限制，如170">
-                        </div>
-                        <div class="form-group full-width">
-                            <label>对接码 (uid)</label>
-                            <input type="text" id="configUid" placeholder="留空为不限制，只取该对接码号码">
-                        </div>
+                        <div class="form-group"><label>只取号段 (paragraph)</label><input type="text" id="configParagraph" placeholder="留空限制，如133"></div>
+                        <div class="form-group"><label>排除号段 (exclude)</label><input type="text" id="configExclude" placeholder="留空限制，如170"></div>
+                        <div class="form-group full-width"><label>对接码 (uid)</label><input type="text" id="configUid" placeholder="留空为不限制，只取该对接码号码"></div>
                     </div>
                     <button class="btn btn-primary btn-block" onclick="saveBaseConfig()" style="margin-top: 10px;">保存基础配置</button>
                     <div id="baseSaveResult" class="hidden alert alert-success" style="margin-top: 8px;">✅ 基础配置已保存</div>
                 </div>
             </div>
 
-            <!-- ======= 合并后的订单创建卡片 ======= -->
             <div class="ios-card">
                 <div class="ios-card-header" style="margin-bottom: 10px;">
                     <span class="ios-card-title"><span class="emoji">📱</span> 订单创建</span>
                 </div>
-                
                 <button class="btn btn-primary btn-block" onclick="createSingleOrder()">创建新订单</button>
-
                 <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
                     <label>批量创建</label>
                     <div class="batch-row">
@@ -435,7 +362,6 @@
                         <button class="btn btn-primary" onclick="createBatchOrders()">批量创建</button>
                     </div>
                 </div>
-
                 <div class="form-group" style="margin-top: 0; margin-bottom: 0;">
                     <label>指定号码创建</label>
                     <div class="batch-row">
@@ -443,7 +369,6 @@
                         <button class="btn btn-primary" onclick="createCustomPhoneOrder()">指定创建</button>
                     </div>
                 </div>
-
                 <div id="orderResult" class="hidden" style="margin-top: 10px;">
                     <div class="alert alert-success" id="orderSuccessMsg" style="margin-top:0; padding: 6px 10px; font-size: 12px;">✅ 订单已创建</div>
                     <div style="font-size:12px;color:var(--text-tertiary);margin:4px 0 2px;">复制链接发送给买家：</div>
@@ -452,17 +377,13 @@
                 </div>
             </div>
 
-            <!-- 释放链接 -->
             <div class="ios-card">
                 <div class="ios-card-header" style="margin-bottom: 10px;">
                     <span class="ios-card-title"><span class="emoji">🔒</span> 释放链接</span>
                     <span class="ios-card-sub">使订单失效</span>
                 </div>
                 <div class="batch-row">
-                    <div class="form-group">
-                        <label>订单号</label>
-                        <input type="text" id="lockOid" placeholder="HZxxxxx">
-                    </div>
+                    <div class="form-group"><label>订单号</label><input type="text" id="lockOid" placeholder="HZxxxxx"></div>
                     <button class="btn btn-danger" onclick="lockOrder()">释放</button>
                 </div>
                 <div id="lockResult" class="hidden alert" style="margin-top:10px;"></div>
@@ -471,7 +392,7 @@
 
         <!-- ============ Tab 2: 记录 ============ -->
         <div id="tab-record" class="view">
-            <!-- 卡片1：活跃订单（保留原有的框框） -->
+            <!-- 卡片1：活跃订单 -->
             <div class="ios-card">
                 <div class="ios-card-header">
                     <span class="ios-card-title"><span class="emoji">📲</span> 已获取手机号订单</span>
@@ -485,40 +406,24 @@
                 </div>
             </div>
 
-            <!-- 卡片2：新增的历史记录卡片 (来自 records.html) -->
+            <!-- 卡片2：历史记录 -->
             <div class="ios-card">
                 <div class="ios-card-header">
                     <span class="ios-card-title"><span class="emoji">📋</span> 获取记录</span>
                     <button class="btn btn-secondary btn-sm" onclick="loadRecords()" id="refreshRecordsBtn">刷新数据</button>
                 </div>
-
                 <div class="search-box">
                     <span>🔍</span>
                     <input type="text" id="searchInput" placeholder="本页内搜索订单号或手机号..." oninput="filterRecords()">
                 </div>
-
                 <div class="stats-bar">
-                    <div class="stat-item">
-                        <div class="num" id="totalCount">0</div>
-                        <div class="label">本页记录</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="num" id="doneCount">0</div>
-                        <div class="label">本页已完成</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="num" id="activeCount">0</div>
-                        <div class="label">本页等待中</div>
-                    </div>
+                    <div class="stat-item"><div class="num" id="totalCount">0</div><div class="label">本页记录</div></div>
+                    <div class="stat-item"><div class="num" id="doneCount">0</div><div class="label">本页已完成</div></div>
+                    <div class="stat-item"><div class="num" id="activeCount">0</div><div class="label">本页等待中</div></div>
                 </div>
-
                 <div class="record-list" id="recordList">
-                    <div class="empty-state">
-                        <span class="icon">⏳</span>
-                        正在加载数据...
-                    </div>
+                    <div class="empty-state"><span class="icon">⏳</span>正在加载数据...</div>
                 </div>
-
                 <div class="pagination">
                     <button class="btn-page" id="prevBtn" onclick="prevPage()" disabled>← 上一页</button>
                     <span class="page-info">第 <strong id="pageNum">1</strong> 页</span>
@@ -531,21 +436,12 @@
         <!-- ============ Tab 3: 我的 ============ -->
         <div id="tab-profile" class="view">
             <div class="ios-card">
-                <div class="ios-card-header">
-                    <span class="ios-card-title"><span class="emoji">🔑</span> API 账号配置</span>
-                </div>
-                <div class="form-group">
-                    <label>API 账号 (User)</label>
-                    <input type="text" id="configApiUser" placeholder="输入接码平台账号">
-                </div>
-                <div class="form-group">
-                    <label>API 密码 (Pass)</label>
-                    <input type="password" id="configApiPass" placeholder="输入接码平台密码">
-                </div>
+                <div class="ios-card-header"><span class="ios-card-title"><span class="emoji">🔑</span> API 账号配置</span></div>
+                <div class="form-group"><label>API 账号 (User)</label><input type="text" id="configApiUser" placeholder="输入接码平台账号"></div>
+                <div class="form-group"><label>API 密码 (Pass)</label><input type="password" id="configApiPass" placeholder="输入接码平台密码"></div>
                 <button class="btn btn-primary btn-block" onclick="saveApiConfig()" style="margin-top: 6px;">保存 API 配置</button>
                 <div id="apiSaveResult" class="hidden alert alert-success" style="margin-top: 10px;">✅ API 配置已保存</div>
             </div>
-            
             <div class="ios-card" style="text-align: center;">
                 <button class="btn btn-danger btn-block" onclick="logout()" style="padding: 12px; font-size: 15px;">退出登录</button>
             </div>
@@ -553,18 +449,9 @@
 
         <!-- 底部导航栏 -->
         <nav class="bottom-nav">
-            <div class="nav-item" data-target="tab-record" onclick="switchTab('tab-record', this)">
-                <span class="icon">📋</span>
-                <span class="text">记录</span>
-            </div>
-            <div class="nav-item active" data-target="tab-receive" onclick="switchTab('tab-receive', this)">
-                <span class="icon">📨</span>
-                <span class="text">接码</span>
-            </div>
-            <div class="nav-item" data-target="tab-profile" onclick="switchTab('tab-profile', this)">
-                <span class="icon">👤</span>
-                <span class="text">我的</span>
-            </div>
+            <div class="nav-item" data-target="tab-record" onclick="switchTab('tab-record', this)"><span class="icon">📋</span><span class="text">记录</span></div>
+            <div class="nav-item active" data-target="tab-receive" onclick="switchTab('tab-receive', this)"><span class="icon">📨</span><span class="text">接码</span></div>
+            <div class="nav-item" data-target="tab-profile" onclick="switchTab('tab-profile', this)"><span class="icon">👤</span><span class="text">我的</span></div>
         </nav>
     </div>
 
@@ -573,7 +460,7 @@
             'use strict';
 
             const API_BASE = '/api/order';
-            const ADMIN_PASSWORD = 'shinia299.';  // 管理密码
+            const ADMIN_PASSWORD = 'shinia299.';
             const PAGE_SIZE = 100;
 
             const loginBox = document.getElementById('loginBox');
@@ -589,12 +476,9 @@
                 toastEl.textContent = msg;
                 toastEl.classList.add('show');
                 clearTimeout(toastTimer);
-                toastTimer = setTimeout(() => {
-                    toastEl.classList.remove('show');
-                }, duration);
+                toastTimer = setTimeout(() => { toastEl.classList.remove('show'); }, duration);
             }
 
-            // ===== 带超时功能的 fetch =====
             async function fetchWithTimeout(url, timeout = 5000) {
                 const controller = new AbortController();
                 const id = setTimeout(() => controller.abort(), timeout);
@@ -609,7 +493,6 @@
                 }
             }
 
-            // ===== Tab 切换 =====
             window.switchTab = function(targetId, element) {
                 const views = document.querySelectorAll('.view');
                 views.forEach(view => view.classList.remove('active'));
@@ -622,27 +505,14 @@
                 const activeView = document.getElementById(targetId);
                 activeView.scrollTop = 0;
 
-                // ===== 记录页逻辑 =====
                 if (targetId === 'tab-record') {
-                    // 1. 立即渲染缓存数据，实现瞬间打开
                     if (window.cachedActiveOrders && window.cachedActiveOrders.length > 0) window.renderActiveOrders(window.cachedActiveOrders);
-                    
-                    // 2. 后台静默获取最新活跃订单
                     window.loadActiveOrders(true);
-
-                    // 3. 如果历史记录还没加载过，加载历史记录
-                    if (!window.recordLoaded) {
-                        window.loadRecords();
-                    }
-
-                    // 4. 启动活跃订单的实时轮询（每 2 秒刷新一次，只刷新活跃订单，不刷新历史记录以防打断用户翻页搜索）
+                    if (!window.recordLoaded) { window.loadRecords(); }
                     if (!window.recordPollingTimer) {
-                        window.recordPollingTimer = setInterval(() => {
-                            window.loadActiveOrders(true);
-                        }, 2000);
+                        window.recordPollingTimer = setInterval(() => { window.loadActiveOrders(true); }, 2000);
                     }
                 } else {
-                    // 离开记录页时，停止轮询，节省性能
                     if (window.recordPollingTimer) {
                         clearInterval(window.recordPollingTimer);
                         window.recordPollingTimer = null;
@@ -650,39 +520,26 @@
                 }
             };
 
-            // ===== 折叠面板控制 =====
             window.toggleBaseConfig = function() {
                 const content = document.getElementById('baseConfigContent');
                 const icon = document.getElementById('baseConfigToggleIcon');
                 if (content.classList.contains('hidden-content')) {
-                    content.classList.remove('hidden-content');
-                    icon.textContent = '▲ 收起';
+                    content.classList.remove('hidden-content'); icon.textContent = '▲ 收起';
                 } else {
-                    content.classList.add('hidden-content');
-                    icon.textContent = '▼ 展开';
+                    content.classList.add('hidden-content'); icon.textContent = '▼ 展开';
                 }
             };
 
-            // ===== 记住密码 =====
             function loadRemembered() {
                 const saved = localStorage.getItem('admin_remembered');
                 if (saved) {
-                    try {
-                        const data = JSON.parse(saved);
-                        if (data.password) {
-                            loginPass.value = data.password;
-                            rememberMe.checked = true;
-                        }
-                    } catch(e) {}
+                    try { const data = JSON.parse(saved); if (data.password) { loginPass.value = data.password; rememberMe.checked = true; } } catch(e) {}
                 }
             }
 
             function saveRemembered(password) {
-                if (rememberMe.checked) {
-                    localStorage.setItem('admin_remembered', JSON.stringify({ password: password }));
-                } else {
-                    localStorage.removeItem('admin_remembered');
-                }
+                if (rememberMe.checked) { localStorage.setItem('admin_remembered', JSON.stringify({ password: password })); } 
+                else { localStorage.removeItem('admin_remembered'); }
             }
 
             window.checkLogin = function() {
@@ -690,65 +547,37 @@
                 if (pwd === ADMIN_PASSWORD) {
                     saveRemembered(pwd);
                     sessionStorage.setItem('admin_logged_in', 'true');
-                    loginBox.classList.add('hidden');
-                    adminBox.classList.remove('hidden');
-                    loginError.classList.add('hidden');
-                    initAdmin();
-                    showToast('✅ 登录成功');
-                    setTimeout(() => window.fetchBalance(true), 500);
+                    loginBox.classList.add('hidden'); adminBox.classList.remove('hidden'); loginError.classList.add('hidden');
+                    initAdmin(); showToast('✅ 登录成功'); setTimeout(() => window.fetchBalance(true), 500);
                 } else {
-                    loginError.classList.remove('hidden');
-                    loginPass.value = '';
-                    loginPass.focus();
+                    loginError.classList.remove('hidden'); loginPass.value = ''; loginPass.focus();
                 }
             };
 
             window.logout = function() {
                 if (!confirm('确定退出登录吗？')) return;
                 sessionStorage.removeItem('admin_logged_in');
-                adminBox.classList.add('hidden');
-                loginBox.classList.remove('hidden');
-                loginPass.value = '';
-                loginError.classList.add('hidden');
-                if (window.recordPollingTimer) {
-                    clearInterval(window.recordPollingTimer);
-                    window.recordPollingTimer = null;
-                }
+                adminBox.classList.add('hidden'); loginBox.classList.remove('hidden'); loginPass.value = ''; loginError.classList.add('hidden');
+                if (window.recordPollingTimer) { clearInterval(window.recordPollingTimer); window.recordPollingTimer = null; }
                 showToast('已退出');
             };
 
             loadRemembered();
-
             if (sessionStorage.getItem('admin_logged_in') === 'true') {
-                loginBox.classList.add('hidden');
-                adminBox.classList.remove('hidden');
-                initAdmin();
-                setTimeout(() => window.fetchBalance(true), 500);
+                loginBox.classList.add('hidden'); adminBox.classList.remove('hidden'); initAdmin(); setTimeout(() => window.fetchBalance(true), 500);
             }
 
             function initAdmin() {
-                // ===== 全局变量挂载 =====
                 window.recordPollingTimer = null;
                 window.cachedActiveOrders = [];
                 window.isFetchingActiveOrders = false;
                 window.recordLoaded = false;
 
-                // ===== 配置读取与合并 =====
                 function getStoredConfig() {
                     try {
                         const cfg = JSON.parse(localStorage.getItem('hao_admin_config')) || {};
-                        return {
-                            apiUser: cfg.apiUser || '',
-                            apiPass: cfg.apiPass || '',
-                            sid: cfg.sid || '24085',
-                            ascription: cfg.ascription || '',
-                            paragraph: cfg.paragraph || '',
-                            exclude: cfg.exclude || '',
-                            uid: cfg.uid || ''
-                        };
-                    } catch(e) {
-                        return { apiUser: '', apiPass: '', sid: '24085', ascription: '', paragraph: '', exclude: '', uid: '' };
-                    }
+                        return { apiUser: cfg.apiUser || '', apiPass: cfg.apiPass || '', sid: cfg.sid || '24085', ascription: cfg.ascription || '', paragraph: cfg.paragraph || '', exclude: cfg.exclude || '', uid: cfg.uid || '' };
+                    } catch(e) { return { apiUser: '', apiPass: '', sid: '24085', ascription: '', paragraph: '', exclude: '', uid: '' }; }
                 }
                 
                 const currentCfg = getStoredConfig();
@@ -760,28 +589,21 @@
                 document.getElementById('configExclude').value = currentCfg.exclude;
                 document.getElementById('configUid').value = currentCfg.uid;
 
-                // ===== 保存 API 配置 =====
                 window.saveApiConfig = async function() {
                     const apiUser = document.getElementById('configApiUser').value.trim();
                     const apiPass = document.getElementById('configApiPass').value.trim();
                     if (!apiUser || !apiPass) { showToast('⚠️ 请输入 API 账号和密码'); return; }
                     showToast('⏳ 正在保存 API 配置...');
-                    const fullCfg = getStoredConfig();
-                    fullCfg.apiUser = apiUser;
-                    fullCfg.apiPass = apiPass;
+                    const fullCfg = getStoredConfig(); fullCfg.apiUser = apiUser; fullCfg.apiPass = apiPass;
                     try {
                         const resp = await fetch(`${API_BASE}?action=saveApiConfig&apiUser=${encodeURIComponent(fullCfg.apiUser)}&apiPass=${encodeURIComponent(fullCfg.apiPass)}&sid=${encodeURIComponent(fullCfg.sid)}`);
                         const data = await resp.json();
                         if (!data.success) { showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误')); return; }
                     } catch(e) { showToast('⚠️ 网络请求失败: ' + e.message); return; }
                     localStorage.setItem('hao_admin_config', JSON.stringify(fullCfg));
-                    const el = document.getElementById('apiSaveResult');
-                    el.classList.remove('hidden');
-                    setTimeout(() => el.classList.add('hidden'), 2000);
-                    showToast('✅ API 配置已保存');
+                    const el = document.getElementById('apiSaveResult'); el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2000); showToast('✅ API 配置已保存');
                 };
 
-                // ===== 保存基础配置 =====
                 window.saveBaseConfig = async function() {
                     const sid = document.getElementById('configSid').value.trim();
                     const ascription = document.getElementById('configAscription').value;
@@ -790,21 +612,16 @@
                     const uid = document.getElementById('configUid').value.trim();
                     if (!sid) { showToast('⚠️ 请输入项目 ID'); return; }
                     showToast('⏳ 正在保存基础配置...');
-                    const fullCfg = getStoredConfig();
-                    fullCfg.sid = sid; fullCfg.ascription = ascription; fullCfg.paragraph = paragraph; fullCfg.exclude = exclude; fullCfg.uid = uid;
+                    const fullCfg = getStoredConfig(); fullCfg.sid = sid; fullCfg.ascription = ascription; fullCfg.paragraph = paragraph; fullCfg.exclude = exclude; fullCfg.uid = uid;
                     try {
                         const resp = await fetch(`${API_BASE}?action=saveApiConfig&apiUser=${encodeURIComponent(fullCfg.apiUser)}&apiPass=${encodeURIComponent(fullCfg.apiPass)}&sid=${encodeURIComponent(fullCfg.sid)}`);
                         const data = await resp.json();
                         if (!data.success) { showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误')); return; }
                     } catch(e) { showToast('⚠️ 网络请求失败: ' + e.message); return; }
                     localStorage.setItem('hao_admin_config', JSON.stringify(fullCfg));
-                    const el = document.getElementById('baseSaveResult');
-                    el.classList.remove('hidden');
-                    setTimeout(() => el.classList.add('hidden'), 2000);
-                    showToast('✅ 基础配置已保存');
+                    const el = document.getElementById('baseSaveResult'); el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2000); showToast('✅ 基础配置已保存');
                 };
 
-                // ===== 创建订单核心函数 =====
                 async function createOrderAndGetLink(specifiedPhone = null) {
                     const oid = 'HZ' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
                     const curCfg = getStoredConfig();
@@ -816,8 +633,7 @@
                         if (curCfg.exclude) apiUrl += `&exclude=${encodeURIComponent(curCfg.exclude)}`;
                         if (curCfg.uid) apiUrl += `&uid=${encodeURIComponent(curCfg.uid)}`;
                     }
-                    const resp = await fetch(apiUrl);
-                    const data = await resp.json();
+                    const resp = await fetch(apiUrl); const data = await resp.json();
                     if (!data.success) throw new Error(data.error || '创建订单失败');
                     return location.origin + '/?oid=' + oid;
                 }
@@ -828,132 +644,84 @@
                     document.getElementById('orderResult').classList.remove('hidden');
                 }
 
-                window.createSingleOrder = async function() {
-                    try { const link = await createOrderAndGetLink(); showOrderResult('✅ 订单已创建', link); showToast('✅ 订单已创建'); } 
-                    catch(e) { showToast('⚠️ ' + e.message); }
-                };
+                window.createSingleOrder = async function() { try { const link = await createOrderAndGetLink(); showOrderResult('✅ 订单已创建', link); showToast('✅ 订单已创建'); } catch(e) { showToast('⚠️ ' + e.message); } };
 
                 window.createBatchOrders = async function() {
                     const count = parseInt(document.getElementById('batchCount').value) || 5;
                     if (count < 1 || count > 50) { showToast('⚠️ 数量需在 1–50 之间'); return; }
                     showToast('⏳ 正在批量创建...');
-                    try {
-                        const promises = Array.from({ length: count }, () => createOrderAndGetLink());
-                        const links = await Promise.all(promises);
-                        showOrderResult(`✅ 已创建 ${count} 个订单`, links.join('\n'));
-                        showToast('✅ 批量创建成功');
-                    } catch(e) { showToast('⚠️ 批量创建出现错误：' + e.message); }
+                    try { const promises = Array.from({ length: count }, () => createOrderAndGetLink()); const links = await Promise.all(promises); showOrderResult(`✅ 已创建 ${count} 个订单`, links.join('\n')); showToast('✅ 批量创建成功'); } 
+                    catch(e) { showToast('⚠️ 批量创建出现错误：' + e.message); }
                 };
 
                 window.createCustomPhoneOrder = async function() {
                     const phoneInput = document.getElementById('customOrderPhone');
                     const phone = phoneInput.value.trim();
                     if (!phone) { showToast('⚠️ 请输入指定手机号'); return; }
-                    try {
-                        const link = await createOrderAndGetLink(phone);
-                        showOrderResult(`✅ 指定号码 [${phone}] 订单已创建`, link);
-                        phoneInput.value = '';
-                        showToast('✅ 指定号码订单已创建');
-                        window.recordLoaded = false; 
-                    } catch(e) { showToast('⚠️ ' + e.message); }
+                    try { const link = await createOrderAndGetLink(phone); showOrderResult(`✅ 指定号码 [${phone}] 订单已创建`, link); phoneInput.value = ''; showToast('✅ 指定号码订单已创建'); window.recordLoaded = false; } 
+                    catch(e) { showToast('⚠️ ' + e.message); }
                 };
 
                 window.lockOrder = async function(oid) {
                     const oidToLock = oid || document.getElementById('lockOid').value.trim();
                     if (!oidToLock) { showToast('⚠️ 请输入订单号'); return; }
-                    const curCfg = getStoredConfig();
-                    const resultDiv = document.getElementById('lockResult');
+                    const curCfg = getStoredConfig(); const resultDiv = document.getElementById('lockResult');
                     try {
                         const resp = await fetch(`${API_BASE}?action=lockOrder&oid=${encodeURIComponent(oidToLock)}&sid=${curCfg.sid}`);
-                        const data = await resp.json();
-                        resultDiv.classList.remove('hidden');
+                        const data = await resp.json(); resultDiv.classList.remove('hidden');
                         if (data.success) {
-                            resultDiv.textContent = '✅ 该链接已被释放';
-                            resultDiv.className = 'alert alert-success';
-                            showToast('✅ 已释放订单 ' + oidToLock);
-                            window.recordLoaded = false; 
-                            // 刷新两处列表
-                            window.loadActiveOrders(true);
-                            if (document.getElementById('tab-record').classList.contains('active')) {
-                                window.loadRecords();
-                            }
+                            resultDiv.textContent = '✅ 该链接已被释放'; resultDiv.className = 'alert alert-success'; showToast('✅ 已释放订单 ' + oidToLock);
+                            window.recordLoaded = false; window.loadActiveOrders(true);
+                            if (document.getElementById('tab-record').classList.contains('active')) { window.loadRecords(); }
                         } else {
-                            resultDiv.textContent = '❌ ' + (data.error || '操作失败');
-                            resultDiv.className = 'alert alert-error';
-                            showToast('⚠️ ' + (data.error || '释放失败'));
+                            resultDiv.textContent = '❌ ' + (data.error || '操作失败'); resultDiv.className = 'alert alert-error'; showToast('⚠️ ' + (data.error || '释放失败'));
                         }
                         setTimeout(() => resultDiv.classList.add('hidden'), 3000);
                     } catch (e) { showToast('⚠️ 请求失败：' + e.message); }
                 };
 
                 window.copyText = function(id) {
-                    const el = document.getElementById(id);
-                    if (!el) return;
-                    const text = el.textContent.trim();
-                    if (!text) { showToast('⚠️ 没有可复制的内容'); return; }
-                    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('📋 已复制')).catch(() => fallbackCopy(text)); } 
-                    else { fallbackCopy(text); }
+                    const el = document.getElementById(id); if (!el) return;
+                    const text = el.textContent.trim(); if (!text) { showToast('⚠️ 没有可复制的内容'); return; }
+                    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('📋 已复制')).catch(() => fallbackCopy(text)); } else { fallbackCopy(text); }
                 };
                 function fallbackCopy(text) {
-                    const ta = document.createElement('textarea');
-                    ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
+                    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
                     document.body.appendChild(ta); ta.select();
                     try { document.execCommand('copy'); showToast('📋 已复制'); } catch(e) { showToast('⚠️ 复制失败，请手动复制'); }
                     document.body.removeChild(ta);
                 }
 
-                // ===== 渲染活跃订单 =====
                 window.renderActiveOrders = function(orders) {
                     const container = document.getElementById('activeOrderList');
-                    if (!orders || orders.length === 0) {
-                        container.innerHTML = '<div class="list-empty">暂无活跃订单</div>';
-                        return;
-                    }
+                    if (!orders || orders.length === 0) { container.innerHTML = '<div class="list-empty">暂无活跃订单</div>'; return; }
                     container.innerHTML = orders.map(order => `
                         <div class="ios-list-item">
-                            <div class="left">
-                                <span class="oid">${order.oid}</span>
-                                <span class="phone">${order.phone || '无手机号'}</span>
-                                <span class="badge badge-inuse">活跃</span>
-                            </div>
-                            <div class="right">
-                                <button class="btn btn-danger btn-sm" onclick="lockOrder('${order.oid}')" style="padding:4px 10px;font-size:11px;min-height:24px;">释放</button>
-                            </div>
+                            <div class="left"><span class="oid">${order.oid}</span><span class="phone">${order.phone || '无手机号'}</span><span class="badge badge-inuse">活跃</span></div>
+                            <div class="right"><button class="btn btn-danger btn-sm" onclick="lockOrder('${order.oid}')" style="padding:4px 10px;font-size:11px;min-height:24px;">释放</button></div>
                         </div>`).join('');
                 };
 
-                // ===== 加载活跃订单 =====
                 window.loadActiveOrders = async function(isSilent = false) {
                     if (window.isFetchingActiveOrders) return;
                     window.isFetchingActiveOrders = true;
                     const container = document.getElementById('activeOrderList');
-                    if (!isSilent && window.cachedActiveOrders.length === 0) {
-                        container.innerHTML = '<div class="list-empty">⏳ 加载中…</div>';
-                    }
+                    if (!isSilent && window.cachedActiveOrders.length === 0) { container.innerHTML = '<div class="list-empty">⏳ 加载中…</div>'; }
                     try {
                         const data = await fetchWithTimeout(`${API_BASE}?action=listActiveOrders`, 5000);
                         const newOrders = data.orders || [];
                         if (JSON.stringify(newOrders) !== JSON.stringify(window.cachedActiveOrders)) {
-                            window.cachedActiveOrders = newOrders;
-                            window.renderActiveOrders(newOrders);
+                            window.cachedActiveOrders = newOrders; window.renderActiveOrders(newOrders);
                         }
                     } catch(e) {
                         if (!isSilent || window.cachedActiveOrders.length === 0) {
                             container.innerHTML = `<div class="list-empty" style="color:var(--danger);">加载失败: ${e.name === 'AbortError' ? '请求超时' : '网络异常'} <br><br><button class="btn btn-secondary btn-sm" onclick="loadActiveOrders(false)">点击重试</button></div>`;
                         }
-                    } finally {
-                        window.isFetchingActiveOrders = false;
-                    }
+                    } finally { window.isFetchingActiveOrders = false; }
                 };
 
-                // ==========================================
-                // ===== 历史记录逻辑 (来自 records.html) =====
-                // ==========================================
-                let allRecords = [];
-                let cursorStack = [null];
-                let currentPageIndex = 0;
-                let hasMore = false;
-
+                // ===== 历史记录逻辑 =====
+                let allRecords = []; let cursorStack = [null]; let currentPageIndex = 0; let hasMore = false;
                 const recordList = document.getElementById('recordList');
                 const searchInput = document.getElementById('searchInput');
                 const refreshBtn = document.getElementById('refreshRecordsBtn');
@@ -966,29 +734,45 @@
 
                 function getStatusInfo(status) {
                     const map = {
-                        'new': { text: '待获取', class: 'badge-new' },
-                        'active': { text: '获取中', class: 'badge-active' },
-                        'done': { text: '已完成', class: 'badge-done' },
-                        'released': { text: '已释放', class: 'badge-released' },
-                        'expired': { text: '已超时', class: 'badge-expired' },
-                        'pending': { text: '待处理', class: 'badge-new' }
+                        'new': { text: '待获取', class: 'badge-new' }, 'active': { text: '获取中', class: 'badge-active' },
+                        'done': { text: '已完成', class: 'badge-done' }, 'released': { text: '已释放', class: 'badge-released' },
+                        'expired': { text: '已超时', class: 'badge-expired' }, 'pending': { text: '待处理', class: 'badge-new' }
                     };
                     return map[status] || { text: status || '未知', class: 'badge-new' };
                 }
 
+                // 格式化时间
+                function formatTime(ts) {
+                    if (!ts) return '';
+                    const d = new Date(ts);
+                    return `${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
+                }
+
                 function renderRecords(records) {
-                    if (records.length === 0) {
-                        recordList.innerHTML = `<div class="empty-state"><span class="icon">📭</span>暂无记录</div>`;
-                        return;
-                    }
+                    if (records.length === 0) { recordList.innerHTML = `<div class="empty-state"><span class="icon">📭</span>暂无记录</div>`; return; }
                     recordList.innerHTML = records.map(record => {
                         const statusInfo = getStatusInfo(record.status);
                         const displayPhone = record.phone !== '---' ? record.phone : (record.assignedPhone ? `指定: ${record.assignedPhone}` : '未获取');
                         const codeHtml = record.code ? `<span class="code-text">${record.code}</span>` : '';
+                        
+                        // 计算显示的时间
+                        let timeStr = '';
+                        if (record.status === 'done' && record.doneTime) {
+                            timeStr = `完成: ${formatTime(record.doneTime)}`;
+                        } else if (record.status === 'active' && record.phoneAssignedAt) {
+                            timeStr = `获取: ${formatTime(record.phoneAssignedAt)}`;
+                        } else if (record.createdAt) {
+                            timeStr = `创建: ${formatTime(record.createdAt)}`;
+                        }
+
                         return `
                             <div class="record-item">
                                 <div class="row-1"><span class="phone">${displayPhone}</span><span class="oid">${record.oid}</span></div>
-                                <div class="row-2"><span>状态：<span class="badge ${statusInfo.class}">${statusInfo.text}</span></span><span>${codeHtml}</span></div>
+                                <div class="row-2">
+                                    <span>状态：<span class="badge ${statusInfo.class}">${statusInfo.text}</span></span>
+                                    <span>${codeHtml}</span>
+                                </div>
+                                ${timeStr ? `<div class="row-3">${timeStr}</div>` : ''}
                             </div>`;
                     }).join('');
                 }
@@ -1012,106 +796,70 @@
 
                 function updatePaginationUI() {
                     pageNum.textContent = currentPageIndex + 1;
-                    prevBtn.disabled = currentPageIndex === 0;
-                    nextBtn.disabled = !hasMore;
+                    prevBtn.disabled = currentPageIndex === 0; nextBtn.disabled = !hasMore;
                 }
 
                 async function loadPage(pageIndex) {
                     if (pageIndex < 0 || pageIndex >= cursorStack.length) return;
                     const cursor = cursorStack[pageIndex];
-
-                    refreshBtn.disabled = true;
-                    refreshBtn.textContent = '加载中...';
-                    prevBtn.disabled = true;
-                    nextBtn.disabled = true;
+                    refreshBtn.disabled = true; refreshBtn.textContent = '加载中...';
+                    prevBtn.disabled = true; nextBtn.disabled = true;
                     recordList.innerHTML = `<div class="empty-state"><span class="icon">⏳</span>正在加载第 ${pageIndex + 1} 页...</div>`;
-
                     try {
                         const url = new URL(API_BASE, location.origin);
-                        url.searchParams.set('action', 'listAllOrders');
-                        url.searchParams.set('limit', PAGE_SIZE);
+                        url.searchParams.set('action', 'listAllOrders'); url.searchParams.set('limit', PAGE_SIZE);
                         if (cursor) url.searchParams.set('cursor', cursor);
                         const data = await fetchWithTimeout(url.toString(), 8000);
                         if (!data.orders) throw new Error(data.error || '数据格式错误');
                         if (!data.list_complete && data.cursor) {
                             hasMore = true;
-                            if (cursorStack.length <= pageIndex + 1) { cursorStack.push(data.cursor); } 
-                            else { cursorStack[pageIndex + 1] = data.cursor; }
-                        } else {
-                            hasMore = false;
-                            cursorStack = cursorStack.slice(0, pageIndex + 1);
-                        }
-                        currentPageIndex = pageIndex;
-                        allRecords = data.orders;
-                        window.recordLoaded = true;
-                        updateStats(allRecords);
-                        window.filterRecords();
-                        updatePaginationUI();
+                            if (cursorStack.length <= pageIndex + 1) { cursorStack.push(data.cursor); } else { cursorStack[pageIndex + 1] = data.cursor; }
+                        } else { hasMore = false; cursorStack = cursorStack.slice(0, pageIndex + 1); }
+                        currentPageIndex = pageIndex; allRecords = data.orders; window.recordLoaded = true;
+                        updateStats(allRecords); window.filterRecords(); updatePaginationUI();
                     } catch (e) {
                         recordList.innerHTML = `<div class="empty-state" style="color:var(--danger);"><span class="icon">❌</span>加载失败：${e.message}</div>`;
-                        hasMore = false;
-                        updatePaginationUI();
+                        hasMore = false; updatePaginationUI();
                     } finally {
-                        refreshBtn.disabled = false;
-                        refreshBtn.textContent = '刷新数据';
+                        refreshBtn.disabled = false; refreshBtn.textContent = '刷新数据';
                     }
                 }
 
                 window.loadRecords = function() {
-                    currentPageIndex = 0;
-                    cursorStack = [null];
-                    searchInput.value = ''; 
-                    return loadPage(0);
+                    currentPageIndex = 0; cursorStack = [null]; searchInput.value = ''; return loadPage(0);
                 };
 
                 window.prevPage = function() { if (currentPageIndex > 0) loadPage(currentPageIndex - 1); };
                 window.nextPage = function() { if (hasMore) loadPage(currentPageIndex + 1); };
 
-                // ===== 一键释放 =====
                 window.releaseAllOrders = async function() {
                     if (!confirm('确定释放所有已获取手机号的订单吗？此操作不可撤销！')) return;
                     try {
                         const resp = await fetch(`${API_BASE}?action=releaseAllOrders`);
                         const data = await resp.json();
                         if (data.success) {
-                            showToast('✅ 已全部释放');
-                            window.recordLoaded = false;
-                            window.loadActiveOrders(true);
-                            if (document.getElementById('tab-record').classList.contains('active')) {
-                                window.loadRecords();
-                            }
-                        } else {
-                            showToast('⚠️ ' + (data.error || '操作失败'));
-                        }
+                            showToast('✅ 已全部释放'); window.recordLoaded = false; window.loadActiveOrders(true);
+                            if (document.getElementById('tab-record').classList.contains('active')) { window.loadRecords(); }
+                        } else { showToast('⚠️ ' + (data.error || '操作失败')); }
                     } catch(e) { showToast('⚠️ 请求失败：' + e.message); }
                 };
 
-                // ===== 余额查询 =====
                 window.fetchBalance = async function(silent) {
-                    const amountEl = document.getElementById('balanceAmount');
-                    const errorEl = document.getElementById('balanceError');
-                    amountEl.textContent = '...';
-                    errorEl.classList.add('hidden');
+                    const amountEl = document.getElementById('balanceAmount'); const errorEl = document.getElementById('balanceError');
+                    amountEl.textContent = '...'; errorEl.classList.add('hidden');
                     try {
                         const data = await fetchWithTimeout(`${API_BASE}?action=getBalance`, 5000);
                         if (data.balance !== undefined) {
-                            amountEl.textContent = data.balance;
-                            if (!silent) showToast('✅ 余额已更新');
+                            amountEl.textContent = data.balance; if (!silent) showToast('✅ 余额已更新');
                         } else {
-                            amountEl.textContent = '❌';
-                            errorEl.textContent = data.error || '查询失败';
-                            errorEl.classList.remove('hidden');
+                            amountEl.textContent = '❌'; errorEl.textContent = data.error || '查询失败'; errorEl.classList.remove('hidden');
                         }
                     } catch (e) {
-                        amountEl.textContent = '⚠️';
-                        errorEl.textContent = '请求失败：' + e.message;
-                        errorEl.classList.remove('hidden');
+                        amountEl.textContent = '⚠️'; errorEl.textContent = '请求失败：' + e.message; errorEl.classList.remove('hidden');
                     }
                 };
             }
-
         })();
     </script>
-
 </body>
 </html>
