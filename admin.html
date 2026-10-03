@@ -248,44 +248,66 @@
         .badge-danger { background: rgba(255,59,48,0.12); color: var(--danger); }
         .list-empty { padding: 24px 12px; text-align: center; color: var(--text-tertiary); font-size: 13px; }
 
+        /* ===== 历史记录相关样式 (来自 records.html) ===== */
+        .search-box {
+            display: flex; align-items: center; background: var(--input-bg);
+            border: 1px solid var(--separator); border-radius: 999px; padding: 8px 16px;
+            margin-bottom: 16px; transition: all 0.3s;
+        }
+        .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,122,255,0.12); background: #fff; }
+        .search-box input { border: none; background: transparent; outline: none; font-size: 14px; width: 100%; color: var(--text-primary); font-family: var(--font); }
+        .search-box input::placeholder { color: var(--text-quaternary); }
+        .search-box span { color: var(--text-tertiary); font-size: 16px; margin-right: 6px; }
+
+        .stats-bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .stat-item { background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: var(--radius-sm); padding: 12px 16px; flex: 1; min-width: 80px; text-align: center; }
+        .stat-item .num { font-size: 20px; font-weight: 700; color: var(--primary); }
+        .stat-item .label { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+
+        .record-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .record-list::-webkit-scrollbar { width: 4px; }
+        .record-list::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 4px; }
+
+        .record-item { background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: var(--radius-sm); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; }
+        .record-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: rgba(255, 255, 255, 0.8); }
+        .record-item .row-1 { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .record-item .phone { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; }
+        .record-item .oid { font-size: 12px; color: var(--text-tertiary); background: rgba(255, 255, 255, 0.8); padding: 2px 10px; border-radius: 12px; border: 1px solid var(--separator); }
+        .record-item .row-2 { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-secondary); }
+
+        .badge-new { background: rgba(142, 142, 147, 0.15); color: var(--text-secondary); }
+        .badge-active { background: rgba(0, 122, 255, 0.12); color: var(--primary); }
+        .badge-done { background: rgba(52, 199, 89, 0.15); color: #1D8B3C; }
+        .badge-released { background: rgba(255, 59, 48, 0.12); color: var(--danger); }
+        .badge-expired { background: rgba(255, 149, 0, 0.15); color: #B25900; }
+
+        .code-text { font-family: 'SF Mono', 'Consolas', monospace; color: var(--primary); font-weight: 600; background: rgba(0, 122, 255, 0.08); padding: 2px 8px; border-radius: 6px; letter-spacing: 2px; }
+        .empty-state { text-align: center; padding: 40px 0; color: var(--text-tertiary); font-size: 14px; }
+        .empty-state .icon { font-size: 40px; display: block; margin-bottom: 12px; }
+
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--separator); flex-wrap: wrap; }
+        .btn-page { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--separator); background: var(--input-bg); color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: var(--font); min-height: 36px; }
+        .btn-page:hover:not(:disabled) { background: #fff; box-shadow: 0 2px 8px rgba(0,122,255,0.12); }
+        .btn-page:active:not(:disabled) { transform: scale(0.96); }
+        .btn-page:disabled { opacity: 0.4; cursor: not-allowed; color: var(--text-tertiary); }
+        .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; padding: 0 8px; }
+        .page-info strong { color: var(--primary); font-weight: 700; font-size: 15px; }
+        .hint-text { font-size: 12px; color: var(--text-quaternary); text-align: center; margin-top: 8px; }
+
         /* ===== 折叠面板 ===== */
-        .config-collapse {
-            overflow: hidden;
-            transition: max-height 0.4s ease, margin-top 0.4s ease;
-            max-height: 1000px;
-            margin-top: 12px;
-        }
-        .config-collapse.hidden-content {
-            max-height: 0;
-            margin-top: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
+        .config-collapse { overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease; max-height: 1000px; margin-top: 12px; }
+        .config-collapse.hidden-content { max-height: 0; margin-top: 0; visibility: hidden; pointer-events: none; }
 
         /* ===== 底部导航栏 ===== */
         .bottom-nav {
-            position: relative;
-            flex: 0 0 auto;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            height: 60px;
-            height: calc(60px + env(safe-area-inset-bottom));
-            padding-bottom: 0;
-            padding-bottom: env(safe-area-inset-bottom);
-            background: rgba(255, 255, 255, 0.72);
-            backdrop-filter: blur(20px) saturate(1.8);
-            -webkit-backdrop-filter: blur(20px) saturate(1.8);
-            border-top: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-            z-index: 1000;
+            position: relative; flex: 0 0 auto; display: flex; justify-content: space-around; align-items: center;
+            height: 60px; height: calc(60px + env(safe-area-inset-bottom));
+            padding-bottom: 0; padding-bottom: env(safe-area-inset-bottom);
+            background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(20px) saturate(1.8);
+            -webkit-backdrop-filter: blur(20px) saturate(1.8); border-top: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05); z-index: 1000;
         }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #8e8e93; font-size: 11px; font-weight: 500; cursor: pointer;
-            transition: all 0.3s ease; flex: 1; height: 100%;
-            touch-action: manipulation;
-        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8e8e93; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; flex: 1; height: 100%; touch-action: manipulation; }
         .nav-item.active { color: var(--primary); }
         .nav-item .icon { font-size: 22px; margin-bottom: 2px; transition: transform 0.3s ease; }
         .nav-item.active .icon { transform: translateY(-2px) scale(1.1); }
@@ -312,6 +334,10 @@
             .form-grid-2 { grid-template-columns: 1fr; gap: 0; }
             .form-grid-2 .form-group.full-width { grid-column: span 1; }
             .view { padding: 12px 10px 16px; }
+            .record-item .phone { font-size: 14px; }
+            .stat-item { padding: 8px; min-width: 70px; }
+            .stat-item .num { font-size: 16px; }
+            .stat-item .label { font-size: 11px; }
         }
     </style>
 </head>
@@ -400,10 +426,8 @@
                     <span class="ios-card-title"><span class="emoji">📱</span> 订单创建</span>
                 </div>
                 
-                <!-- 1. 创建新订单 (单个) -->
                 <button class="btn btn-primary btn-block" onclick="createSingleOrder()">创建新订单</button>
 
-                <!-- 2. 批量创建 -->
                 <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
                     <label>批量创建</label>
                     <div class="batch-row">
@@ -412,7 +436,6 @@
                     </div>
                 </div>
 
-                <!-- 3. 指定手机号创建 -->
                 <div class="form-group" style="margin-top: 0; margin-bottom: 0;">
                     <label>指定号码创建</label>
                     <div class="batch-row">
@@ -421,7 +444,6 @@
                     </div>
                 </div>
 
-                <!-- 统一的结果展示区域 -->
                 <div id="orderResult" class="hidden" style="margin-top: 10px;">
                     <div class="alert alert-success" id="orderSuccessMsg" style="margin-top:0; padding: 6px 10px; font-size: 12px;">✅ 订单已创建</div>
                     <div style="font-size:12px;color:var(--text-tertiary);margin:4px 0 2px;">复制链接发送给买家：</div>
@@ -429,7 +451,6 @@
                     <button class="btn-copy" onclick="copyText('orderLinkText')" style="padding: 4px 12px; font-size: 12px;">📋 复制链接</button>
                 </div>
             </div>
-            <!-- ===================================== -->
 
             <!-- 释放链接 -->
             <div class="ios-card">
@@ -446,12 +467,11 @@
                 </div>
                 <div id="lockResult" class="hidden alert" style="margin-top:10px;"></div>
             </div>
-
         </div>
 
         <!-- ============ Tab 2: 记录 ============ -->
         <div id="tab-record" class="view">
-            <!-- 活跃订单列表 -->
+            <!-- 卡片1：活跃订单（保留原有的框框） -->
             <div class="ios-card">
                 <div class="ios-card-header">
                     <span class="ios-card-title"><span class="emoji">📲</span> 已获取手机号订单</span>
@@ -465,22 +485,51 @@
                 </div>
             </div>
 
-            <!-- 验证码记录 -->
+            <!-- 卡片2：新增的历史记录卡片 (来自 records.html) -->
             <div class="ios-card">
                 <div class="ios-card-header">
-                    <span class="ios-card-title"><span class="emoji">📋</span> 验证码记录</span>
-                    <button class="btn btn-secondary btn-sm" onclick="loadLogs(false)">刷新</button>
+                    <span class="ios-card-title"><span class="emoji">📋</span> 获取记录</span>
+                    <button class="btn btn-secondary btn-sm" onclick="loadRecords()" id="refreshRecordsBtn">刷新数据</button>
                 </div>
-                <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px;">手机号 · 时间</div>
-                <div class="ios-list" id="logListContainer">
-                    <div class="list-empty">加载中…</div>
+
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" id="searchInput" placeholder="本页内搜索订单号或手机号..." oninput="filterRecords()">
                 </div>
+
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="num" id="totalCount">0</div>
+                        <div class="label">本页记录</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="num" id="doneCount">0</div>
+                        <div class="label">本页已完成</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="num" id="activeCount">0</div>
+                        <div class="label">本页等待中</div>
+                    </div>
+                </div>
+
+                <div class="record-list" id="recordList">
+                    <div class="empty-state">
+                        <span class="icon">⏳</span>
+                        正在加载数据...
+                    </div>
+                </div>
+
+                <div class="pagination">
+                    <button class="btn-page" id="prevBtn" onclick="prevPage()" disabled>← 上一页</button>
+                    <span class="page-info">第 <strong id="pageNum">1</strong> 页</span>
+                    <button class="btn-page" id="nextBtn" onclick="nextPage()" disabled>下一页 →</button>
+                </div>
+                <div class="hint-text">每页 100 条 · 搜索仅作用于当前页</div>
             </div>
         </div>
 
         <!-- ============ Tab 3: 我的 ============ -->
         <div id="tab-profile" class="view">
-            <!-- API 配置 -->
             <div class="ios-card">
                 <div class="ios-card-header">
                     <span class="ios-card-title"><span class="emoji">🔑</span> API 账号配置</span>
@@ -497,7 +546,6 @@
                 <div id="apiSaveResult" class="hidden alert alert-success" style="margin-top: 10px;">✅ API 配置已保存</div>
             </div>
             
-            <!-- 退出登录卡片 -->
             <div class="ios-card" style="text-align: center;">
                 <button class="btn btn-danger btn-block" onclick="logout()" style="padding: 12px; font-size: 15px;">退出登录</button>
             </div>
@@ -526,6 +574,7 @@
 
             const API_BASE = '/api/order';
             const ADMIN_PASSWORD = 'shinia299.';  // 管理密码
+            const PAGE_SIZE = 100;
 
             const loginBox = document.getElementById('loginBox');
             const adminBox = document.getElementById('adminBox');
@@ -545,7 +594,7 @@
                 }, duration);
             }
 
-            // ===== 带超时功能的 fetch，防止后端卡死导致前端一直加载中 =====
+            // ===== 带超时功能的 fetch =====
             async function fetchWithTimeout(url, timeout = 5000) {
                 const controller = new AbortController();
                 const id = setTimeout(() => controller.abort(), timeout);
@@ -573,25 +622,27 @@
                 const activeView = document.getElementById(targetId);
                 activeView.scrollTop = 0;
 
-                // ===== 记录页逻辑优化 =====
+                // ===== 记录页逻辑 =====
                 if (targetId === 'tab-record') {
-                    // 1. 立即渲染缓存数据（如果有），实现瞬间打开
+                    // 1. 立即渲染缓存数据，实现瞬间打开
                     if (window.cachedActiveOrders && window.cachedActiveOrders.length > 0) window.renderActiveOrders(window.cachedActiveOrders);
-                    if (window.cachedLogs && window.cachedLogs.length > 0) window.renderLogs(window.cachedLogs);
-
-                    // 2. 后台静默获取最新数据
+                    
+                    // 2. 后台静默获取最新活跃订单
                     window.loadActiveOrders(true);
-                    window.loadLogs(true);
 
-                    // 3. 启动实时轮询（每 2 秒刷新一次）
+                    // 3. 如果历史记录还没加载过，加载历史记录
+                    if (!window.recordLoaded) {
+                        window.loadRecords();
+                    }
+
+                    // 4. 启动活跃订单的实时轮询（每 2 秒刷新一次，只刷新活跃订单，不刷新历史记录以防打断用户翻页搜索）
                     if (!window.recordPollingTimer) {
                         window.recordPollingTimer = setInterval(() => {
                             window.loadActiveOrders(true);
-                            window.loadLogs(true);
                         }, 2000);
                     }
                 } else {
-                    // 离开记录页时，停止轮询，节省性能和流量
+                    // 离开记录页时，停止轮询，节省性能
                     if (window.recordPollingTimer) {
                         clearInterval(window.recordPollingTimer);
                         window.recordPollingTimer = null;
@@ -659,7 +710,6 @@
                 loginBox.classList.remove('hidden');
                 loginPass.value = '';
                 loginError.classList.add('hidden');
-                // 清除轮询
                 if (window.recordPollingTimer) {
                     clearInterval(window.recordPollingTimer);
                     window.recordPollingTimer = null;
@@ -677,12 +727,11 @@
             }
 
             function initAdmin() {
-                // ===== 全局变量挂载到 window，方便 switchTab 调用 =====
+                // ===== 全局变量挂载 =====
                 window.recordPollingTimer = null;
                 window.cachedActiveOrders = [];
-                window.cachedLogs = [];
                 window.isFetchingActiveOrders = false;
-                window.isFetchingLogs = false;
+                window.recordLoaded = false;
 
                 // ===== 配置读取与合并 =====
                 function getStoredConfig() {
@@ -703,84 +752,52 @@
                 }
                 
                 const currentCfg = getStoredConfig();
-                
-                // 回显 API 配置
                 document.getElementById('configApiUser').value = currentCfg.apiUser;
                 document.getElementById('configApiPass').value = currentCfg.apiPass;
-
-                // 回显基础配置
                 document.getElementById('configSid').value = currentCfg.sid;
                 document.getElementById('configAscription').value = currentCfg.ascription;
                 document.getElementById('configParagraph').value = currentCfg.paragraph;
                 document.getElementById('configExclude').value = currentCfg.exclude;
                 document.getElementById('configUid').value = currentCfg.uid;
 
-                // ===== 保存 API 配置（我的页） =====
+                // ===== 保存 API 配置 =====
                 window.saveApiConfig = async function() {
                     const apiUser = document.getElementById('configApiUser').value.trim();
                     const apiPass = document.getElementById('configApiPass').value.trim();
-                    
                     if (!apiUser || !apiPass) { showToast('⚠️ 请输入 API 账号和密码'); return; }
-
                     showToast('⏳ 正在保存 API 配置...');
-                    
                     const fullCfg = getStoredConfig();
                     fullCfg.apiUser = apiUser;
                     fullCfg.apiPass = apiPass;
-
                     try {
                         const resp = await fetch(`${API_BASE}?action=saveApiConfig&apiUser=${encodeURIComponent(fullCfg.apiUser)}&apiPass=${encodeURIComponent(fullCfg.apiPass)}&sid=${encodeURIComponent(fullCfg.sid)}`);
                         const data = await resp.json();
-                        if (!data.success) {
-                            showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误'));
-                            return;
-                        }
-                    } catch(e) {
-                        showToast('⚠️ 网络请求失败: ' + e.message);
-                        return;
-                    }
-
+                        if (!data.success) { showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误')); return; }
+                    } catch(e) { showToast('⚠️ 网络请求失败: ' + e.message); return; }
                     localStorage.setItem('hao_admin_config', JSON.stringify(fullCfg));
-                    
                     const el = document.getElementById('apiSaveResult');
                     el.classList.remove('hidden');
                     setTimeout(() => el.classList.add('hidden'), 2000);
                     showToast('✅ API 配置已保存');
                 };
 
-                // ===== 保存基础配置（接码页） =====
+                // ===== 保存基础配置 =====
                 window.saveBaseConfig = async function() {
                     const sid = document.getElementById('configSid').value.trim();
                     const ascription = document.getElementById('configAscription').value;
                     const paragraph = document.getElementById('configParagraph').value.trim();
                     const exclude = document.getElementById('configExclude').value.trim();
                     const uid = document.getElementById('configUid').value.trim();
-                    
                     if (!sid) { showToast('⚠️ 请输入项目 ID'); return; }
-
                     showToast('⏳ 正在保存基础配置...');
-                    
                     const fullCfg = getStoredConfig();
-                    fullCfg.sid = sid;
-                    fullCfg.ascription = ascription;
-                    fullCfg.paragraph = paragraph;
-                    fullCfg.exclude = exclude;
-                    fullCfg.uid = uid;
-
+                    fullCfg.sid = sid; fullCfg.ascription = ascription; fullCfg.paragraph = paragraph; fullCfg.exclude = exclude; fullCfg.uid = uid;
                     try {
                         const resp = await fetch(`${API_BASE}?action=saveApiConfig&apiUser=${encodeURIComponent(fullCfg.apiUser)}&apiPass=${encodeURIComponent(fullCfg.apiPass)}&sid=${encodeURIComponent(fullCfg.sid)}`);
                         const data = await resp.json();
-                        if (!data.success) {
-                            showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误'));
-                            return;
-                        }
-                    } catch(e) {
-                        showToast('⚠️ 网络请求失败: ' + e.message);
-                        return;
-                    }
-
+                        if (!data.success) { showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误')); return; }
+                    } catch(e) { showToast('⚠️ 网络请求失败: ' + e.message); return; }
                     localStorage.setItem('hao_admin_config', JSON.stringify(fullCfg));
-                    
                     const el = document.getElementById('baseSaveResult');
                     el.classList.remove('hidden');
                     setTimeout(() => el.classList.add('hidden'), 2000);
@@ -790,28 +807,21 @@
                 // ===== 创建订单核心函数 =====
                 async function createOrderAndGetLink(specifiedPhone = null) {
                     const oid = 'HZ' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-                    
                     const curCfg = getStoredConfig();
-                    
                     let apiUrl = `${API_BASE}?action=createOrder&oid=${oid}&sid=${curCfg.sid}`;
-                    if (specifiedPhone) {
-                        apiUrl += `&phone=${encodeURIComponent(specifiedPhone)}`;
-                    } else {
+                    if (specifiedPhone) { apiUrl += `&phone=${encodeURIComponent(specifiedPhone)}`; } 
+                    else {
                         if (curCfg.ascription) apiUrl += `&ascription=${encodeURIComponent(curCfg.ascription)}`;
                         if (curCfg.paragraph) apiUrl += `&paragraph=${encodeURIComponent(curCfg.paragraph)}`;
                         if (curCfg.exclude) apiUrl += `&exclude=${encodeURIComponent(curCfg.exclude)}`;
                         if (curCfg.uid) apiUrl += `&uid=${encodeURIComponent(curCfg.uid)}`;
                     }
-
                     const resp = await fetch(apiUrl);
                     const data = await resp.json();
-                    if (!data.success) {
-                        throw new Error(data.error || '创建订单失败');
-                    }
+                    if (!data.success) throw new Error(data.error || '创建订单失败');
                     return location.origin + '/?oid=' + oid;
                 }
 
-                // 统一的结果渲染
                 function showOrderResult(htmlMsg, linkText) {
                     document.getElementById('orderSuccessMsg').innerHTML = htmlMsg;
                     document.getElementById('orderLinkText').textContent = linkText;
@@ -819,29 +829,20 @@
                 }
 
                 window.createSingleOrder = async function() {
-                    try {
-                        const link = await createOrderAndGetLink();
-                        showOrderResult('✅ 订单已创建', link);
-                        showToast('✅ 订单已创建');
-                    } catch(e) {
-                        showToast('⚠️ ' + e.message);
-                    }
+                    try { const link = await createOrderAndGetLink(); showOrderResult('✅ 订单已创建', link); showToast('✅ 订单已创建'); } 
+                    catch(e) { showToast('⚠️ ' + e.message); }
                 };
 
                 window.createBatchOrders = async function() {
                     const count = parseInt(document.getElementById('batchCount').value) || 5;
                     if (count < 1 || count > 50) { showToast('⚠️ 数量需在 1–50 之间'); return; }
-                    
                     showToast('⏳ 正在批量创建...');
                     try {
                         const promises = Array.from({ length: count }, () => createOrderAndGetLink());
                         const links = await Promise.all(promises);
-                        
                         showOrderResult(`✅ 已创建 ${count} 个订单`, links.join('\n'));
                         showToast('✅ 批量创建成功');
-                    } catch(e) {
-                        showToast('⚠️ 批量创建出现错误：' + e.message);
-                    }
+                    } catch(e) { showToast('⚠️ 批量创建出现错误：' + e.message); }
                 };
 
                 window.createCustomPhoneOrder = async function() {
@@ -853,20 +854,15 @@
                         showOrderResult(`✅ 指定号码 [${phone}] 订单已创建`, link);
                         phoneInput.value = '';
                         showToast('✅ 指定号码订单已创建');
-                        // 创建成功后，直接触发一次静默刷新，以便在记录页第一时间看到
-                        window.loadActiveOrders(true);
-                    } catch(e) {
-                        showToast('⚠️ ' + e.message);
-                    }
+                        window.recordLoaded = false; 
+                    } catch(e) { showToast('⚠️ ' + e.message); }
                 };
 
                 window.lockOrder = async function(oid) {
                     const oidToLock = oid || document.getElementById('lockOid').value.trim();
                     if (!oidToLock) { showToast('⚠️ 请输入订单号'); return; }
-                    
                     const curCfg = getStoredConfig();
                     const resultDiv = document.getElementById('lockResult');
-                    
                     try {
                         const resp = await fetch(`${API_BASE}?action=lockOrder&oid=${encodeURIComponent(oidToLock)}&sid=${curCfg.sid}`);
                         const data = await resp.json();
@@ -875,17 +871,19 @@
                             resultDiv.textContent = '✅ 该链接已被释放';
                             resultDiv.className = 'alert alert-success';
                             showToast('✅ 已释放订单 ' + oidToLock);
-                            // 释放后刷新列表
+                            window.recordLoaded = false; 
+                            // 刷新两处列表
                             window.loadActiveOrders(true);
+                            if (document.getElementById('tab-record').classList.contains('active')) {
+                                window.loadRecords();
+                            }
                         } else {
                             resultDiv.textContent = '❌ ' + (data.error || '操作失败');
                             resultDiv.className = 'alert alert-error';
                             showToast('⚠️ ' + (data.error || '释放失败'));
                         }
                         setTimeout(() => resultDiv.classList.add('hidden'), 3000);
-                    } catch (e) {
-                        showToast('⚠️ 请求失败：' + e.message);
-                    }
+                    } catch (e) { showToast('⚠️ 请求失败：' + e.message); }
                 };
 
                 window.copyText = function(id) {
@@ -893,22 +891,18 @@
                     if (!el) return;
                     const text = el.textContent.trim();
                     if (!text) { showToast('⚠️ 没有可复制的内容'); return; }
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(text).then(() => showToast('📋 已复制')).catch(() => fallbackCopy(text));
-                    } else {
-                        fallbackCopy(text);
-                    }
+                    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('📋 已复制')).catch(() => fallbackCopy(text)); } 
+                    else { fallbackCopy(text); }
                 };
                 function fallbackCopy(text) {
                     const ta = document.createElement('textarea');
-                    ta.value = text;
-                    ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
+                    ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
                     document.body.appendChild(ta); ta.select();
                     try { document.execCommand('copy'); showToast('📋 已复制'); } catch(e) { showToast('⚠️ 复制失败，请手动复制'); }
                     document.body.removeChild(ta);
                 }
 
-                // ===== 渲染函数 =====
+                // ===== 渲染活跃订单 =====
                 window.renderActiveOrders = function(orders) {
                     const container = document.getElementById('activeOrderList');
                     if (!orders || orders.length === 0) {
@@ -926,86 +920,154 @@
                                 <button class="btn btn-danger btn-sm" onclick="lockOrder('${order.oid}')" style="padding:4px 10px;font-size:11px;min-height:24px;">释放</button>
                             </div>
                         </div>`).join('');
-                }
+                };
 
-                window.renderLogs = function(logs) {
-                    const container = document.getElementById('logListContainer');
-                    if (!logs || logs.length === 0) {
-                        container.innerHTML = '<div class="list-empty">暂无验证码记录</div>';
-                        return;
-                    }
-                    container.innerHTML = logs.map(log => {
-                        const phone = log.phone || '未知';
-                        const time = log.time ? new Date(log.time).toLocaleString('zh-CN', { hour12: false }) : '—';
-                        return `<div class="ios-list-item">
-                            <div class="left"><span class="phone">${phone}</span></div>
-                            <div class="right"><span class="time" style="color:var(--text-tertiary);font-size:12px;">${time}</span></div>
-                        </div>`;
-                    }).join('');
-                }
-
-                // ===== 数据获取函数 (支持静默获取) =====
+                // ===== 加载活跃订单 =====
                 window.loadActiveOrders = async function(isSilent = false) {
-                    if (window.isFetchingActiveOrders) return; // 防止并发请求
+                    if (window.isFetchingActiveOrders) return;
                     window.isFetchingActiveOrders = true;
                     const container = document.getElementById('activeOrderList');
-
-                    // 只有非静默（主动点击刷新）且没有缓存时，才显示加载中
                     if (!isSilent && window.cachedActiveOrders.length === 0) {
                         container.innerHTML = '<div class="list-empty">⏳ 加载中…</div>';
                     }
-
                     try {
                         const data = await fetchWithTimeout(`${API_BASE}?action=listActiveOrders`, 5000);
                         const newOrders = data.orders || [];
-                        
-                        // 数据比对，仅当数据变化时才重新渲染，避免闪烁
                         if (JSON.stringify(newOrders) !== JSON.stringify(window.cachedActiveOrders)) {
                             window.cachedActiveOrders = newOrders;
                             window.renderActiveOrders(newOrders);
                         }
                     } catch(e) {
-                        console.error('加载订单失败:', e);
                         if (!isSilent || window.cachedActiveOrders.length === 0) {
-                            container.innerHTML = `
-                                <div class="list-empty" style="color:var(--danger);">
-                                    加载失败: ${e.name === 'AbortError' ? '请求超时' : '网络异常'} 
-                                    <br><br>
-                                    <button class="btn btn-secondary btn-sm" onclick="loadActiveOrders(false)">点击重试</button>
-                                </div>`;
+                            container.innerHTML = `<div class="list-empty" style="color:var(--danger);">加载失败: ${e.name === 'AbortError' ? '请求超时' : '网络异常'} <br><br><button class="btn btn-secondary btn-sm" onclick="loadActiveOrders(false)">点击重试</button></div>`;
                         }
                     } finally {
                         window.isFetchingActiveOrders = false;
                     }
                 };
 
-                window.loadLogs = async function(isSilent = false) {
-                    if (window.isFetchingLogs) return;
-                    window.isFetchingLogs = true;
-                    const container = document.getElementById('logListContainer');
+                // ==========================================
+                // ===== 历史记录逻辑 (来自 records.html) =====
+                // ==========================================
+                let allRecords = [];
+                let cursorStack = [null];
+                let currentPageIndex = 0;
+                let hasMore = false;
 
-                    if (!isSilent && window.cachedLogs.length === 0) {
-                        container.innerHTML = '<div class="list-empty">⏳ 加载中…</div>';
+                const recordList = document.getElementById('recordList');
+                const searchInput = document.getElementById('searchInput');
+                const refreshBtn = document.getElementById('refreshRecordsBtn');
+                const totalCount = document.getElementById('totalCount');
+                const doneCount = document.getElementById('doneCount');
+                const activeCount = document.getElementById('activeCount');
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                const pageNum = document.getElementById('pageNum');
+
+                function getStatusInfo(status) {
+                    const map = {
+                        'new': { text: '待获取', class: 'badge-new' },
+                        'active': { text: '获取中', class: 'badge-active' },
+                        'done': { text: '已完成', class: 'badge-done' },
+                        'released': { text: '已释放', class: 'badge-released' },
+                        'expired': { text: '已超时', class: 'badge-expired' },
+                        'pending': { text: '待处理', class: 'badge-new' }
+                    };
+                    return map[status] || { text: status || '未知', class: 'badge-new' };
+                }
+
+                function renderRecords(records) {
+                    if (records.length === 0) {
+                        recordList.innerHTML = `<div class="empty-state"><span class="icon">📭</span>暂无记录</div>`;
+                        return;
                     }
+                    recordList.innerHTML = records.map(record => {
+                        const statusInfo = getStatusInfo(record.status);
+                        const displayPhone = record.phone !== '---' ? record.phone : (record.assignedPhone ? `指定: ${record.assignedPhone}` : '未获取');
+                        const codeHtml = record.code ? `<span class="code-text">${record.code}</span>` : '';
+                        return `
+                            <div class="record-item">
+                                <div class="row-1"><span class="phone">${displayPhone}</span><span class="oid">${record.oid}</span></div>
+                                <div class="row-2"><span>状态：<span class="badge ${statusInfo.class}">${statusInfo.text}</span></span><span>${codeHtml}</span></div>
+                            </div>`;
+                    }).join('');
+                }
 
-                    try {
-                        const logData = await fetchWithTimeout(`${API_BASE}?action=logList`, 5000);
-                        const newLogs = logData.logs || [];
+                function updateStats(records) {
+                    totalCount.textContent = records.length;
+                    doneCount.textContent = records.filter(r => r.status === 'done').length;
+                    activeCount.textContent = records.filter(r => r.status === 'active').length;
+                }
 
-                        if (JSON.stringify(newLogs) !== JSON.stringify(window.cachedLogs)) {
-                            window.cachedLogs = newLogs;
-                            window.renderLogs(newLogs);
-                        }
-                    } catch(e) {
-                        console.error('加载日志失败:', e);
-                        if (!isSilent || window.cachedLogs.length === 0) {
-                            container.innerHTML = '<div class="list-empty" style="color:var(--danger);">加载失败，请刷新</div>';
-                        }
-                    } finally {
-                        window.isFetchingLogs = false;
-                    }
+                window.filterRecords = function() {
+                    const keyword = searchInput.value.trim().toLowerCase();
+                    if (!keyword) { renderRecords(allRecords); return; }
+                    const filtered = allRecords.filter(record =>
+                        record.oid.toLowerCase().includes(keyword) ||
+                        (record.phone && record.phone.includes(keyword)) ||
+                        (record.assignedPhone && record.assignedPhone.includes(keyword))
+                    );
+                    renderRecords(filtered);
                 };
 
+                function updatePaginationUI() {
+                    pageNum.textContent = currentPageIndex + 1;
+                    prevBtn.disabled = currentPageIndex === 0;
+                    nextBtn.disabled = !hasMore;
+                }
+
+                async function loadPage(pageIndex) {
+                    if (pageIndex < 0 || pageIndex >= cursorStack.length) return;
+                    const cursor = cursorStack[pageIndex];
+
+                    refreshBtn.disabled = true;
+                    refreshBtn.textContent = '加载中...';
+                    prevBtn.disabled = true;
+                    nextBtn.disabled = true;
+                    recordList.innerHTML = `<div class="empty-state"><span class="icon">⏳</span>正在加载第 ${pageIndex + 1} 页...</div>`;
+
+                    try {
+                        const url = new URL(API_BASE, location.origin);
+                        url.searchParams.set('action', 'listAllOrders');
+                        url.searchParams.set('limit', PAGE_SIZE);
+                        if (cursor) url.searchParams.set('cursor', cursor);
+                        const data = await fetchWithTimeout(url.toString(), 8000);
+                        if (!data.orders) throw new Error(data.error || '数据格式错误');
+                        if (!data.list_complete && data.cursor) {
+                            hasMore = true;
+                            if (cursorStack.length <= pageIndex + 1) { cursorStack.push(data.cursor); } 
+                            else { cursorStack[pageIndex + 1] = data.cursor; }
+                        } else {
+                            hasMore = false;
+                            cursorStack = cursorStack.slice(0, pageIndex + 1);
+                        }
+                        currentPageIndex = pageIndex;
+                        allRecords = data.orders;
+                        window.recordLoaded = true;
+                        updateStats(allRecords);
+                        window.filterRecords();
+                        updatePaginationUI();
+                    } catch (e) {
+                        recordList.innerHTML = `<div class="empty-state" style="color:var(--danger);"><span class="icon">❌</span>加载失败：${e.message}</div>`;
+                        hasMore = false;
+                        updatePaginationUI();
+                    } finally {
+                        refreshBtn.disabled = false;
+                        refreshBtn.textContent = '刷新数据';
+                    }
+                }
+
+                window.loadRecords = function() {
+                    currentPageIndex = 0;
+                    cursorStack = [null];
+                    searchInput.value = ''; 
+                    return loadPage(0);
+                };
+
+                window.prevPage = function() { if (currentPageIndex > 0) loadPage(currentPageIndex - 1); };
+                window.nextPage = function() { if (hasMore) loadPage(currentPageIndex + 1); };
+
+                // ===== 一键释放 =====
                 window.releaseAllOrders = async function() {
                     if (!confirm('确定释放所有已获取手机号的订单吗？此操作不可撤销！')) return;
                     try {
@@ -1013,16 +1075,18 @@
                         const data = await resp.json();
                         if (data.success) {
                             showToast('✅ 已全部释放');
+                            window.recordLoaded = false;
                             window.loadActiveOrders(true);
+                            if (document.getElementById('tab-record').classList.contains('active')) {
+                                window.loadRecords();
+                            }
                         } else {
                             showToast('⚠️ ' + (data.error || '操作失败'));
                         }
-                    } catch(e) {
-                        showToast('⚠️ 请求失败：' + e.message);
-                    }
+                    } catch(e) { showToast('⚠️ 请求失败：' + e.message); }
                 };
 
-                // silent = true 时不弹 toast（自动刷新用）
+                // ===== 余额查询 =====
                 window.fetchBalance = async function(silent) {
                     const amountEl = document.getElementById('balanceAmount');
                     const errorEl = document.getElementById('balanceError');
