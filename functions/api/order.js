@@ -2,6 +2,7 @@
 const PHONE_TTL_MS = 90 * 1000;              // 手机号有效期：90 秒
 const ACTIVE_INDEX_KEY = '__active_orders__'; // 活跃订单索引键
 const ORDER_INDEX_KEY  = '__order_index__';   // 订单列表索引键
+const ORDER_INDEX_VERSION = 2;                // v2：只收录已完成（收到验证码）的订单
 
 // ============ 带超时的 fetch ============
 async function fetchWithTimeout(url, options = {}, timeout = 4000) {
@@ -90,11 +91,11 @@ export async function onRequest(context) {
       if (index[oid]) { delete index[oid]; await kv.put(ACTIVE_INDEX_KEY, JSON.stringify(index)); }
     }
 
-    // ============ 【重写】订单索引：只用 metadata，不做逐 key get ============
-    // 依赖 createOrder 写入时的 { metadata: { createdAt } }
-    // 读取时通过 kv.list() 一次拿回所有 key + metadata，不消耗子请求额度
+    // ============ 【重写】订单索引：只收录已完成订单 ============
+    // 只收录 status === 'done' 的订单（即收到过验证码的）
+    // 重建时只用 kv.list metadata，不做逐 key get，避免子请求超限
     async function buildOrderIndexFromList() {
-      console.log('[order-index] 开始从 KV list metadata 构建索引...');
+      console.log('[order-index] 开始构建索引（仅已完成订单）...');
       const collected = [];
       let listCursor = null;
       let pages = 0;
@@ -104,50 +105,69 @@ export async function onRequest(context) {
         for (const k of res.keys) {
           if (k.name.startsWith('__')) continue;
           if (k.name === POOL_KEY || k.name === LOG_KEY || k.name === CARD_KEY) continue;
+
           const md = k.metadata || {};
+          const status = md.status;   // 可能 undefined（旧数据）
           const createdAt = typeof md.createdAt === 'number' ? md.createdAt : 0;
+
+          // ★ 只保留已完成订单
+          //   - 有明确 status 的：必须 === 'done'，其它一律跳过
+          //   - 完全没有 status 的（老版本写入的订单）：保守保留，视为历史完成订单
+          if (status !== undefined && status !== null && status !== 'done') continue;
+
           collected.push({ oid: k.name, createdAt });
         }
         listCursor = res.list_complete ? null : res.cursor;
         pages++;
-        if (pages > 100) {           // 安全阀：最多 10 万条 key
+        if (pages > 100) {           // 安全阀：最多 10 万条
           console.warn('[order-index] 达到 100 页上限，停止扫描');
           break;
         }
       } while (listCursor);
 
-      // 排序：createdAt 倒序；缺失 createdAt 的用 oid 数字序兜底
       collected.sort((a, b) => {
         if (b.createdAt !== a.createdAt) return b.createdAt - a.createdAt;
         return String(b.oid).localeCompare(String(a.oid), undefined, { numeric: true });
       });
 
-      await kv.put(ORDER_INDEX_KEY, JSON.stringify({ items: collected }));
+      await kv.put(ORDER_INDEX_KEY, JSON.stringify({
+        version: ORDER_INDEX_VERSION,
+        items: collected
+      }));
       console.log(`[order-index] 构建完成，共 ${collected.length} 条`);
       return collected;
     }
 
     async function getOrderIndex() {
       const stored = await kv.get(ORDER_INDEX_KEY, { type: 'json' });
-      if (stored && Array.isArray(stored.items) && stored.items.length >= 0) {
+      // 版本不匹配（或不存在）→ 自动重建，触发一次性迁移
+      if (stored && stored.version === ORDER_INDEX_VERSION && Array.isArray(stored.items)) {
         return stored.items;
       }
       return await buildOrderIndexFromList();
     }
 
+    // 只有当订单变成 done 时才会调用
     async function pushToOrderIndex(oid, createdAt) {
       const items = await getOrderIndex();
       const filtered = items.filter(it => it.oid !== oid);
       filtered.unshift({ oid, createdAt: createdAt || Date.now() });
       if (filtered.length > 20000) filtered.length = 20000;
-      await kv.put(ORDER_INDEX_KEY, JSON.stringify({ items: filtered }));
+      await kv.put(ORDER_INDEX_KEY, JSON.stringify({
+        version: ORDER_INDEX_VERSION,
+        items: filtered
+      }));
     }
 
     async function removeFromOrderIndex(oid) {
-      const items = await getOrderIndex();
-      const filtered = items.filter(it => it.oid !== oid);
-      if (filtered.length !== items.length) {
-        await kv.put(ORDER_INDEX_KEY, JSON.stringify({ items: filtered }));
+      const stored = await kv.get(ORDER_INDEX_KEY, { type: 'json' });
+      if (!stored || !Array.isArray(stored.items)) return;
+      const filtered = stored.items.filter(it => it.oid !== oid);
+      if (filtered.length !== stored.items.length) {
+        await kv.put(ORDER_INDEX_KEY, JSON.stringify({
+          version: ORDER_INDEX_VERSION,
+          items: filtered
+        }));
       }
     }
 
@@ -221,6 +241,7 @@ export async function onRequest(context) {
       await kv.put(oid, JSON.stringify(order), {
         metadata: { createdAt: order.createdAt || 0, status: 'released' }
       });
+      // done 是终态，不会离开索引；其它状态本来就不在索引里，无需处理
       return { success: true };
     }
 
@@ -284,19 +305,18 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
-      // ============ 【关键】listAllOrders ============
-      // 索引给了顺序，只对当前页做 kv.get。每页 100 条 → 100 次 get，付费版没问题
+      // ============ listAllOrders：只列出已完成订单 ============
       case 'listAllOrders': {
         const cursorStr = url.searchParams.get('cursor') || null;
         const limit = Math.min(parseInt(url.searchParams.get('limit')) || 100, 200);
 
-        const index = await getOrderIndex();
+        const index = await getOrderIndex();   // 已按 createdAt 倒序，且只含 done 订单
         const start = cursorStr ? Math.max(parseInt(cursorStr) || 0, 0) : 0;
         const end = Math.min(start + limit, index.length);
         const pageItems = index.slice(start, end);
 
         const orders = [];
-        const BATCH_SIZE = 20;   // 一次并发 20 个 get，避开瞬时压力
+        const BATCH_SIZE = 20;
         for (let i = 0; i < pageItems.length; i += BATCH_SIZE) {
           const batch = pageItems.slice(i, i + BATCH_SIZE);
           const results = await Promise.all(
@@ -309,12 +329,12 @@ export async function onRequest(context) {
           );
           batch.forEach((item, idx) => {
             const order = results[idx];
-            if (order) {
+            if (order && order.status === 'done') {   // ★ 二次兜底：只显示 done
               orders.push({
                 oid: item.oid,
                 phone: order.phone || '---',
                 assignedPhone: order.assignedPhone || '',
-                status: order.status || 'new',
+                status: order.status,
                 code: order.code || '',
                 expire: order.expire || null,
                 doneTime: order.doneTime || null,
@@ -333,7 +353,7 @@ export async function onRequest(context) {
         });
       }
 
-      // 手动重建索引（可选，管理员用）
+      // 手动重建索引
       case 'rebuildOrderIndex': {
         await kv.delete(ORDER_INDEX_KEY);
         const items = await buildOrderIndexFromList();
@@ -352,7 +372,7 @@ export async function onRequest(context) {
         return jsonResponse({ success: true, released: successCount, total: results.length, details: results });
       }
 
-      // ============ 【关键】createOrder 写入 metadata ============
+      // ============ createOrder：不再入索引 ============
       case 'createOrder': {
         if (!oid) return jsonResponse({ error: '缺少订单ID' }, 400);
         const existing = await kv.get(oid, { type: 'json' });
@@ -377,15 +397,11 @@ export async function onRequest(context) {
           filters: { ascription, paragraph, exclude, isp, province, uid }
         };
 
-        // ★ 写入 metadata.createdAt，供 list 排序用
         await kv.put(oid, JSON.stringify(newOrder), {
           metadata: { createdAt, status: 'new' }
         });
 
-        // 更新索引（新订单插到最前）
-        try { await pushToOrderIndex(oid, createdAt); }
-        catch (e) { console.error('写入订单索引失败:', e); }
-
+        // ★ 不再调用 pushToOrderIndex —— 新订单不是 done 状态，不进列表
         return jsonResponse({ success: true });
       }
 
@@ -695,6 +711,7 @@ export async function onRequest(context) {
         return jsonResponse({ success: true });
       }
 
+      // ============ getSMS：收到验证码时，加入订单索引 ============
       case 'getSMS': {
         const order = await kv.get(oid, { type: 'json' });
         if (!order) return jsonResponse({ error: '订单不存在' }, 404);
@@ -727,6 +744,14 @@ export async function onRequest(context) {
               });
               await removeFromActiveIndex(oid);
               await addLog(order.phone, oid, 'sms_received');
+
+              // ★ 收到验证码，加入订单索引，列表才会显示
+              try {
+                await pushToOrderIndex(oid, order.createdAt || Date.now());
+              } catch (e) {
+                console.error('加入订单索引失败:', e);
+              }
+
               return jsonResponse({ code: match[1], status: 'done' });
             }
           }
