@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>获取记录 · 订单与手机号</title>
     <style>
-        /* ===== 柔光毛玻璃 UI 风格 ===== */
         :root {
             --bg-gradient: linear-gradient(135deg, #e8f0fe 0%, #fde8f0 50%, #e2f0ff 100%);
             --card-bg: rgba(255, 255, 255, 0.65);
@@ -53,7 +52,6 @@
             padding: 24px;
         }
 
-        /* 顶部导航与搜索 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -70,6 +68,35 @@
             align-items: center;
             gap: 8px;
         }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .live-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.5);
+            border: 1px solid var(--separator);
+        }
+        .live-dot i {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 0 rgba(52,199,89,0.5);
+            animation: pulse 1.8s infinite;
+        }
+        .live-dot.paused i { background: var(--text-quaternary); animation: none; box-shadow: none; }
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(52,199,89,0.5); }
+            70%  { box-shadow: 0 0 0 8px rgba(52,199,89,0); }
+            100% { box-shadow: 0 0 0 0 rgba(52,199,89,0); }
+        }
+
         .search-box {
             display: flex;
             align-items: center;
@@ -77,8 +104,8 @@
             border: 1px solid var(--separator);
             border-radius: 999px;
             padding: 8px 16px;
-            flex: 1;
-            max-width: 300px;
+            width: 100%;
+            margin-bottom: 16px;
             transition: all 0.3s;
         }
         .search-box:focus-within {
@@ -98,7 +125,6 @@
         .search-box input::placeholder { color: var(--text-quaternary); }
         .search-box span { color: var(--text-tertiary); font-size: 16px; margin-right: 6px; }
 
-        /* 统计面板 */
         .stats-bar {
             display: flex;
             gap: 12px;
@@ -125,7 +151,6 @@
             margin-top: 4px;
         }
 
-        /* 列表容器 */
         .record-list {
             display: flex;
             flex-direction: column;
@@ -133,6 +158,7 @@
             max-height: 60vh;
             overflow-y: auto;
             padding-right: 4px;
+            min-height: 120px;
         }
         .record-list::-webkit-scrollbar { width: 4px; }
         .record-list::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 4px; }
@@ -145,12 +171,15 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.4s;
         }
         .record-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             background: rgba(255, 255, 255, 0.8);
+        }
+        .record-item.flash {
+            background: rgba(52, 199, 89, 0.15);
         }
 
         .record-item .row-1 {
@@ -180,9 +209,10 @@
             align-items: center;
             font-size: 13px;
             color: var(--text-secondary);
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        /* 状态标签 */
         .badge {
             display: inline-block;
             padding: 2px 10px;
@@ -214,7 +244,6 @@
         }
         .empty-state .icon { font-size: 40px; display: block; margin-bottom: 12px; }
 
-        /* 按钮 */
         .btn-refresh {
             background: linear-gradient(135deg, var(--primary), #0056b3);
             color: #fff;
@@ -230,7 +259,6 @@
         .btn-refresh:active { transform: scale(0.96); }
         .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        /* 分页 */
         .pagination {
             display: flex;
             justify-content: center;
@@ -284,9 +312,9 @@
 
         @media (max-width: 600px) {
             .container { padding: 16px; }
-            .search-box { max-width: 100%; }
             .record-item .phone { font-size: 16px; }
             .header h1 { font-size: 20px; }
+            .live-dot { display: none; }
         }
     </style>
 </head>
@@ -295,7 +323,10 @@
     <div class="container">
         <div class="header">
             <h1>📋 获取记录</h1>
-            <button class="btn-refresh" onclick="loadRecords()" id="refreshBtn">刷新数据</button>
+            <div class="header-actions">
+                <span class="live-dot" id="liveDot"><i></i><span id="liveText">自动刷新中</span></span>
+                <button class="btn-refresh" onclick="refreshAll()" id="refreshBtn">刷新数据</button>
+            </div>
         </div>
 
         <div class="search-box">
@@ -325,28 +356,34 @@
             </div>
         </div>
 
-        <!-- 分页控件 -->
         <div class="pagination">
             <button class="btn-page" id="prevBtn" onclick="prevPage()" disabled>← 上一页</button>
             <span class="page-info">第 <strong id="pageNum">1</strong> 页</span>
             <button class="btn-page" id="nextBtn" onclick="nextPage()" disabled>下一页 →</button>
         </div>
-        <div class="hint-text">每页 100 条 · 搜索仅作用于当前页</div>
+        <div class="hint-text" id="hintText">每页 100 条 · 搜索仅作用于当前页 · 每 10 秒自动刷新</div>
     </div>
 
     <script>
         (function() {
             'use strict';
 
-            // ⭐ 改动：API_BASE 改为相对路径
+            // ===== 配置 =====
             const API_BASE = '/api/order';
             const PAGE_SIZE = 100;
+            const AUTO_REFRESH_MS = 10000;   // 自动刷新间隔（毫秒），设为 0 关闭
 
-            let allRecords = [];
-            let cursorStack = [null];
+            // ===== 状态 =====
+            let allRecords = [];             // 当前页原始数据
+            let cursorStack = [null];        // 各页起始游标
             let currentPageIndex = 0;
             let hasMore = false;
+            let lastSnapshot = '';           // 用于 diff，避免无意义重绘
+            let lastOids = new Set();        // 用于高亮新增记录
+            let autoTimer = null;
+            let isFetching = false;
 
+            // ===== DOM =====
             const recordList = document.getElementById('recordList');
             const searchInput = document.getElementById('searchInput');
             const refreshBtn = document.getElementById('refreshBtn');
@@ -356,35 +393,62 @@
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             const pageNum = document.getElementById('pageNum');
+            const liveDot = document.getElementById('liveDot');
+            const liveText = document.getElementById('liveText');
 
+            // ===== 工具 =====
             function getStatusInfo(status) {
                 const map = {
-                    'new': { text: '待获取', class: 'badge-new' },
-                    'active': { text: '获取中', class: 'badge-active' },
-                    'done': { text: '已完成', class: 'badge-done' },
+                    'new':      { text: '待获取', class: 'badge-new' },
+                    'pending':  { text: '待处理', class: 'badge-new' },
+                    'active':   { text: '获取中', class: 'badge-active' },
+                    'done':     { text: '已完成', class: 'badge-done' },
                     'released': { text: '已释放', class: 'badge-released' },
-                    'expired': { text: '已超时', class: 'badge-expired' },
-                    'pending': { text: '待处理', class: 'badge-new' }
+                    'expired':  { text: '已超时', class: 'badge-expired' }
                 };
                 return map[status] || { text: status || '未知', class: 'badge-new' };
             }
 
+            function escapeHtml(s) {
+                if (s === null || s === undefined) return '';
+                return String(s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            // ===== 渲染 =====
             function renderRecords(records) {
                 if (records.length === 0) {
-                    recordList.innerHTML = `<div class="empty-state"><span class="icon">📭</span>暂无记录</div>`;
+                    recordList.innerHTML =
+                        `<div class="empty-state"><span class="icon">📭</span>暂无记录</div>`;
                     return;
                 }
 
                 recordList.innerHTML = records.map(record => {
                     const statusInfo = getStatusInfo(record.status);
-                    const displayPhone = record.phone !== '---' ? record.phone : (record.assignedPhone ? `指定: ${record.assignedPhone}` : '未获取');
-                    const codeHtml = record.code ? `<span class="code-text">${record.code}</span>` : '';
+
+                    // 修复原代码 phone 为 undefined 时渲染成 "undefined"
+                    const hasPhone = record.phone && record.phone !== '---';
+                    const displayPhone = hasPhone
+                        ? escapeHtml(record.phone)
+                        : (record.assignedPhone
+                            ? `指定: ${escapeHtml(record.assignedPhone)}`
+                            : '未获取');
+
+                    const codeHtml = record.code
+                        ? `<span class="code-text">${escapeHtml(record.code)}</span>`
+                        : '';
+
+                    const isNew = lastOids.size > 0 && !lastOids.has(record.oid);
 
                     return `
-                        <div class="record-item">
+                        <div class="record-item${isNew ? ' flash' : ''}">
                             <div class="row-1">
                                 <span class="phone">${displayPhone}</span>
-                                <span class="oid">${record.oid}</span>
+                                <span class="oid">${escapeHtml(record.oid)}</span>
                             </div>
                             <div class="row-2">
                                 <span>状态：<span class="badge ${statusInfo.class}">${statusInfo.text}</span></span>
@@ -407,11 +471,14 @@
                     renderRecords(allRecords);
                     return;
                 }
-                const filtered = allRecords.filter(record =>
-                    record.oid.toLowerCase().includes(keyword) ||
-                    (record.phone && record.phone.includes(keyword)) ||
-                    (record.assignedPhone && record.assignedPhone.includes(keyword))
-                );
+                const filtered = allRecords.filter(record => {
+                    const oid = (record.oid || '').toLowerCase();
+                    const phone = (record.phone || '').toLowerCase();
+                    const assigned = (record.assignedPhone || '').toLowerCase();
+                    return oid.includes(keyword)
+                        || phone.includes(keyword)
+                        || assigned.includes(keyword);
+                });
                 renderRecords(filtered);
             }
 
@@ -421,37 +488,64 @@
                 nextBtn.disabled = !hasMore;
             }
 
-            // 加载指定页
-            async function loadPage(pageIndex) {
-                if (pageIndex < 0 || pageIndex >= cursorStack.length) return;
+            // ===== 核心加载 =====
+            // opts.silent = true: 静默刷新，不显示 loading，不闪
+            // opts.reset  = true: 重置到第 1 页，拉最新
+            async function loadPage(pageIndex, opts = {}) {
+                const silent = opts.silent === true;
+
+                if (!silent) {
+                    if (pageIndex < 0 || pageIndex >= cursorStack.length) return;
+                }
+                if (isFetching) return;
+                isFetching = true;
 
                 const cursor = cursorStack[pageIndex];
 
-                refreshBtn.disabled = true;
-                refreshBtn.textContent = '加载中...';
-                prevBtn.disabled = true;
-                nextBtn.disabled = true;
-                recordList.innerHTML = `<div class="empty-state"><span class="icon">⏳</span>正在加载第 ${pageIndex + 1} 页...</div>`;
+                if (!silent) {
+                    refreshBtn.disabled = true;
+                    refreshBtn.textContent = '加载中...';
+                    prevBtn.disabled = true;
+                    nextBtn.disabled = true;
+                    recordList.innerHTML =
+                        `<div class="empty-state"><span class="icon">⏳</span>正在加载第 ${pageIndex + 1} 页...</div>`;
+                } else {
+                    refreshBtn.disabled = true;
+                }
 
                 try {
                     const url = new URL(API_BASE, location.origin);
                     url.searchParams.set('action', 'listAllOrders');
                     url.searchParams.set('limit', PAGE_SIZE);
                     if (cursor) url.searchParams.set('cursor', cursor);
+                    // ★ 防缓存时间戳兜底
+                    url.searchParams.set('_t', Date.now());
 
-                    const resp = await fetch(url);
+                    // ★ 关键：禁用 HTTP 缓存，保证每次真正读到后端 KV 最新数据
+                    const resp = await fetch(url.toString(), {
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+
                     if (!resp.ok) {
                         let errMsg = `HTTP ${resp.status}`;
                         try {
                             const errData = await resp.json();
-                            if (errData.error) errMsg += ` - ${errData.error}`;
+                            if (errData && errData.error) errMsg += ` - ${errData.error}`;
                         } catch (e) {}
                         throw new Error(errMsg);
                     }
+
                     const data = await resp.json();
+                    if (!data || !Array.isArray(data.orders)) {
+                        throw new Error((data && data.error) || '数据格式错误');
+                    }
 
-                    if (!data.orders) throw new Error(data.error || '数据格式错误');
-
+                    // 游标维护
                     if (!data.list_complete && data.cursor) {
                         hasMore = true;
                         if (cursorStack.length <= pageIndex + 1) {
@@ -467,24 +561,82 @@
                     currentPageIndex = pageIndex;
                     allRecords = data.orders;
 
-                    updateStats(allRecords);
-                    filterRecords();
+                    // ★ diff：数据没变不重绘，避免闪烁
+                    const snapshot = JSON.stringify(data.orders);
+                    if (snapshot !== lastSnapshot) {
+                        lastSnapshot = snapshot;
+                        updateStats(allRecords);
+                        filterRecords();
+                        // 更新 lastOids（供下次 diff 高亮）
+                        lastOids = new Set(data.orders.map(r => r.oid));
+                    }
+
                     updatePaginationUI();
 
                 } catch (e) {
-                    recordList.innerHTML = `<div class="empty-state" style="color:var(--danger);"><span class="icon">❌</span>加载失败：${e.message}</div>`;
+                    if (!silent) {
+                        recordList.innerHTML =
+                            `<div class="empty-state" style="color:var(--danger);">` +
+                            `<span class="icon">❌</span>加载失败：${escapeHtml(e.message)}</div>`;
+                    }
                     hasMore = false;
                     updatePaginationUI();
+                    console.error('[loadPage]', e);
                 } finally {
+                    isFetching = false;
                     refreshBtn.disabled = false;
                     refreshBtn.textContent = '刷新数据';
                 }
             }
 
+            // ===== 自动刷新 =====
+            function setLive(on, text) {
+                if (on) {
+                    liveDot.classList.remove('paused');
+                    liveText.textContent = text || '自动刷新中';
+                } else {
+                    liveDot.classList.add('paused');
+                    liveText.textContent = text || '已暂停';
+                }
+            }
+
+            function startAutoRefresh() {
+                stopAutoRefresh();
+                if (!AUTO_REFRESH_MS) { setLive(false, '手动刷新'); return; }
+                setLive(true, '自动刷新中');
+                autoTimer = setInterval(() => {
+                    if (document.visibilityState !== 'visible') return;
+                    if (isFetching) return;
+                    loadPage(currentPageIndex, { silent: true });
+                }, AUTO_REFRESH_MS);
+            }
+
+            function stopAutoRefresh() {
+                if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+            }
+
+            // 切回前台立刻刷一次
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    loadPage(currentPageIndex, { silent: true });
+                    startAutoRefresh();
+                } else {
+                    stopAutoRefresh();
+                    setLive(false, '后台暂停');
+                }
+            });
+
             // ===== 对外接口 =====
-            window.loadRecords = function() {
-                return loadPage(currentPageIndex);
+            // 点「刷新数据」：重置游标 + 回第 1 页 + 绕过缓存，读后端 KV 最新
+            window.refreshAll = function() {
+                cursorStack = [null];
+                currentPageIndex = 0;
+                lastSnapshot = '';
+                return loadPage(0, { silent: false });
             };
+
+            // 兼容旧按钮调用名
+            window.loadRecords = window.refreshAll;
 
             window.prevPage = function() {
                 if (currentPageIndex > 0) loadPage(currentPageIndex - 1);
@@ -496,8 +648,8 @@
 
             window.filterRecords = filterRecords;
 
-            // 首次加载
-            loadPage(0);
+            // ===== 首次加载 =====
+            loadPage(0, { silent: false }).then(startAutoRefresh);
 
         })();
     </script>
