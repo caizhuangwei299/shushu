@@ -1,6 +1,7 @@
 // ============ 全局常量 ============
 const PHONE_TTL_MS = 90 * 1000;  // 手机号有效期：90 秒
 const ACTIVE_INDEX_KEY = '__active_orders__'; // 活跃订单索引键
+const ORDER_INDEX_KEY = '__order_index__';    // 订单列表索引键（新增）
 
 // ============ 带超时的 fetch，防止第三方接口卡死导致 Worker 超时 ============
 async function fetchWithTimeout(url, options = {}, timeout = 4000) {
@@ -99,6 +100,76 @@ export async function onRequest(context) {
       if (index[oid]) {
         delete index[oid];
         await kv.put(ACTIVE_INDEX_KEY, JSON.stringify(index));
+      }
+    }
+
+    // ============ 【新增】订单列表索引维护 ============
+    // 索引结构：{ items: [{oid, createdAt}, ...] }  永远按 createdAt 倒序
+    // 首次读取时如果索引不存在，会扫描所有订单 key 惰性构建（对旧数据做一次性迁移）
+    async function getOrderIndex() {
+      const stored = await kv.get(ORDER_INDEX_KEY, { type: 'json' });
+      if (stored && Array.isArray(stored.items)) {
+        return stored.items;
+      }
+
+      // —— 惰性构建 ——
+      console.log('[order-index] 索引不存在，开始扫描所有订单 key 构建索引...');
+      const collected = [];
+      let kvCursor = null;
+      do {
+        const listRes = await kv.list({ limit: 1000, cursor: kvCursor });
+        const validKeys = listRes.keys.filter(k =>
+          !k.name.startsWith('__') &&
+          k.name !== POOL_KEY &&
+          k.name !== LOG_KEY &&
+          k.name !== CARD_KEY
+        );
+
+        const BATCH_SIZE = 50;
+        for (let i = 0; i < validKeys.length; i += BATCH_SIZE) {
+          const batch = validKeys.slice(i, i + BATCH_SIZE);
+          const results = await Promise.all(
+            batch.map(k => kv.get(k.name, { type: 'json' }).catch(() => null))
+          );
+          batch.forEach((k, idx) => {
+            const order = results[idx];
+            if (order) {
+              collected.push({
+                oid: k.name,
+                createdAt: order.createdAt || 0
+              });
+            }
+          });
+        }
+
+        kvCursor = listRes.list_complete ? null : listRes.cursor;
+      } while (kvCursor);
+
+      // 排序：createdAt 倒序；缺失 createdAt 的旧订单按 oid 数值倒序兜底
+      collected.sort((a, b) => {
+        if (b.createdAt !== a.createdAt) return b.createdAt - a.createdAt;
+        return String(b.oid).localeCompare(String(a.oid), undefined, { numeric: true });
+      });
+
+      await kv.put(ORDER_INDEX_KEY, JSON.stringify({ items: collected }));
+      console.log(`[order-index] 构建完成，共 ${collected.length} 条`);
+      return collected;
+    }
+
+    async function pushToOrderIndex(oid, createdAt) {
+      const items = await getOrderIndex();
+      const filtered = items.filter(it => it.oid !== oid);
+      filtered.unshift({ oid, createdAt: createdAt || Date.now() });
+      // 上限保护，防止索引 key 无限膨胀
+      if (filtered.length > 20000) filtered.length = 20000;
+      await kv.put(ORDER_INDEX_KEY, JSON.stringify({ items: filtered }));
+    }
+
+    async function removeFromOrderIndex(oid) {
+      const items = await getOrderIndex();
+      const filtered = items.filter(it => it.oid !== oid);
+      if (filtered.length !== items.length) {
+        await kv.put(ORDER_INDEX_KEY, JSON.stringify({ items: filtered }));
       }
     }
 
@@ -257,58 +328,58 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
+      // ============ 【重写】listAllOrders ============
+      // 走 __order_index__ 索引，永远按 createdAt 倒序返回，保证新订单一定在最前面
       case 'listAllOrders': {
-        const cursor = url.searchParams.get('cursor') || null;
+        const cursorStr = url.searchParams.get('cursor') || null;
         const limit = Math.min(parseInt(url.searchParams.get('limit')) || 100, 200);
 
-        const listOptions = { limit, reverse: true };
-        if (cursor) listOptions.cursor = cursor;
+        const index = await getOrderIndex();   // 已按 createdAt 倒序
 
-        const listRes = await kv.list(listOptions);
+        const start = cursorStr ? Math.max(parseInt(cursorStr) || 0, 0) : 0;
+        const end = Math.min(start + limit, index.length);
+        const pageItems = index.slice(start, end);
 
-        const validKeys = listRes.keys.filter(k =>
-          !k.name.startsWith('__') &&
-          k.name !== POOL_KEY &&
-          k.name !== LOG_KEY &&
-          k.name !== CARD_KEY
-        );
-
-        const BATCH_SIZE = 50;
+        // 批量取订单详情
         const orders = [];
-        for (let i = 0; i < validKeys.length; i += BATCH_SIZE) {
-          const batch = validKeys.slice(i, i + BATCH_SIZE);
-          const batchResults = await Promise.all(
-            batch.map(k =>
-              kv.get(k.name, { type: 'json' }).catch(e => {
-                console.error(`读取订单 ${k.name} 失败:`, e);
+        const BATCH_SIZE = 50;
+        for (let i = 0; i < pageItems.length; i += BATCH_SIZE) {
+          const batch = pageItems.slice(i, i + BATCH_SIZE);
+          const results = await Promise.all(
+            batch.map(item =>
+              kv.get(item.oid, { type: 'json' }).catch(e => {
+                console.error(`读取订单 ${item.oid} 失败:`, e);
                 return null;
               })
             )
           );
-          batch.forEach((k, idx) => {
-            const order = batchResults[idx];
+          batch.forEach((item, idx) => {
+            const order = results[idx];
             if (order) {
               orders.push({
-                oid: k.name,
+                oid: item.oid,
                 phone: order.phone || '---',
                 assignedPhone: order.assignedPhone || '',
                 status: order.status || 'new',
                 code: order.code || '',
                 expire: order.expire || null,
                 doneTime: order.doneTime || null,
-                createdAt: order.createdAt || null,             // 👈 新增：返回创建时间
-                phoneAssignedAt: order.phoneAssignedAt || null  // 👈 新增：返回获取号码时间
+                createdAt: order.createdAt || item.createdAt || null,
+                phoneAssignedAt: order.phoneAssignedAt || null
               });
+            } else {
+              // 订单对象已被删除但索引还残留 → 顺手清掉
+              removeFromOrderIndex(item.oid).catch(() => {});
             }
           });
         }
 
-        orders.sort((a, b) => b.oid.localeCompare(a.oid));
-
         return jsonResponse({
           orders,
-          cursor: listRes.cursor || null,
-          list_complete: !!listRes.list_complete,
+          // 用"下一页起始下标"作为 cursor 传给前端
+          cursor: end < index.length ? String(end) : null,
+          list_complete: end >= index.length,
+          total: index.length
         });
       }
 
@@ -347,10 +418,18 @@ export async function onRequest(context) {
           expire: null,
           code: null,
           fromPool: false,
-          createdAt: Date.now(), // 👈 新增：记录订单创建时间
+          createdAt: Date.now(),
           filters: { ascription, paragraph, exclude, isp, province, uid } 
         };
         await kv.put(oid, JSON.stringify(newOrder));
+
+        // ★ 关键：同步写入订单索引，保证列表能立刻看到
+        try {
+          await pushToOrderIndex(oid, newOrder.createdAt);
+        } catch (e) {
+          console.error('写入订单索引失败:', e);
+        }
+
         return jsonResponse({ success: true });
       }
 
@@ -594,7 +673,7 @@ export async function onRequest(context) {
             order.status = 'active';
             order.code = null;
             order.fromPool = false;
-            order.phoneAssignedAt = Date.now(); // 👈 新增：记录获取时间
+            order.phoneAssignedAt = Date.now();
             await kv.put(oid, JSON.stringify(order));
             await updateActiveIndex(oid, realPhone, order.expire);
             return jsonResponse({ phone: realPhone, expire: order.expire });
@@ -628,7 +707,7 @@ export async function onRequest(context) {
             status: 'active', 
             code: null, 
             fromPool: true,
-            phoneAssignedAt: Date.now() // 👈 新增：记录获取时间
+            phoneAssignedAt: Date.now()
           };
           await kv.put(oid, JSON.stringify(newOrder));
           await updateActiveIndex(oid, phone, expire);
@@ -656,7 +735,7 @@ export async function onRequest(context) {
             status: 'active',
             code: null,
             fromPool: false,
-            phoneAssignedAt: Date.now() // 👈 新增：记录获取时间
+            phoneAssignedAt: Date.now()
           };
           await kv.put(oid, JSON.stringify(newOrder));
           await updateActiveIndex(oid, phone, newOrder.expire);
@@ -741,7 +820,8 @@ export async function onRequest(context) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-store'
       }
     });
   }
@@ -751,6 +831,11 @@ export async function onRequest(context) {
 function jsonResponse(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
-    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      // ★ 关键：禁止任何层缓存列表响应
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+    }
   });
 }
