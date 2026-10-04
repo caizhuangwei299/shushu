@@ -576,54 +576,115 @@
                 window.isFetchingActiveOrders = false;
                 window.recordLoaded = false;
 
+                // ================= 【新增】配置的本地缓存 + 云端同步 =================
+                const CONFIG_KEY = 'hao_admin_config';
+                const DEFAULT_CONFIG = { apiUser: '', apiPass: '', sid: '24085', ascription: '', paragraph: '', exclude: '', uid: '' };
+
                 function getStoredConfig() {
                     try {
-                        const cfg = JSON.parse(localStorage.getItem('hao_admin_config')) || {};
-                        return { apiUser: cfg.apiUser || '', apiPass: cfg.apiPass || '', sid: cfg.sid || '24085', ascription: cfg.ascription || '', paragraph: cfg.paragraph || '', exclude: cfg.exclude || '', uid: cfg.uid || '' };
-                    } catch(e) { return { apiUser: '', apiPass: '', sid: '24085', ascription: '', paragraph: '', exclude: '', uid: '' }; }
+                        const cfg = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
+                        return Object.assign({}, DEFAULT_CONFIG, cfg);
+                    } catch(e) { return Object.assign({}, DEFAULT_CONFIG); }
                 }
-                
-                const currentCfg = getStoredConfig();
-                document.getElementById('configApiUser').value = currentCfg.apiUser;
-                document.getElementById('configApiPass').value = currentCfg.apiPass;
-                document.getElementById('configSid').value = currentCfg.sid;
-                document.getElementById('configAscription').value = currentCfg.ascription;
-                document.getElementById('configParagraph').value = currentCfg.paragraph;
-                document.getElementById('configExclude').value = currentCfg.exclude;
-                document.getElementById('configUid').value = currentCfg.uid;
+
+                function applyConfigToForm(cfg) {
+                    document.getElementById('configApiUser').value    = cfg.apiUser || '';
+                    document.getElementById('configApiPass').value    = cfg.apiPass || '';
+                    document.getElementById('configSid').value        = cfg.sid || '';
+                    document.getElementById('configAscription').value = cfg.ascription || '';
+                    document.getElementById('configParagraph').value  = cfg.paragraph || '';
+                    document.getElementById('configExclude').value    = cfg.exclude || '';
+                    document.getElementById('configUid').value        = cfg.uid || '';
+                }
+
+                // 直接从表单收集全部配置项（不再只依赖 localStorage）
+                function collectConfig() {
+                    return {
+                        apiUser:    document.getElementById('configApiUser').value.trim(),
+                        apiPass:    document.getElementById('configApiPass').value.trim(),
+                        sid:        document.getElementById('configSid').value.trim(),
+                        ascription: document.getElementById('configAscription').value,
+                        paragraph:  document.getElementById('configParagraph').value.trim(),
+                        exclude:    document.getElementById('configExclude').value.trim(),
+                        uid:        document.getElementById('configUid').value.trim()
+                    };
+                }
+
+                // 1. 先用本地缓存秒开（离线也能用）
+                applyConfigToForm(getStoredConfig());
+
+                // 2. 再从后端拉取真正配置（换设备 / 换浏览器自动带上）
+                async function loadConfigFromServer() {
+                    try {
+                        const data = await fetchWithTimeout(`${API_BASE}?action=getApiConfig`, 6000);
+                        if (!data || data.success !== true) return;
+                        const cfg = {
+                            apiUser:    data.apiUser || '',
+                            apiPass:    data.apiPass || '',
+                            sid:        data.sid || '24085',
+                            ascription: data.ascription || '',
+                            paragraph:  data.paragraph || '',
+                            exclude:    data.exclude || '',
+                            uid:        data.uid || ''
+                        };
+                        localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+                        applyConfigToForm(cfg);
+                        console.log('[config] 已从云端同步配置');
+                    } catch (e) {
+                        console.warn('拉取云端配置失败，继续使用本地缓存:', e);
+                    }
+                }
+                loadConfigFromServer();
+
+                // 统一保存入口：写后端 KV + 写本地缓存
+                async function persistConfig(cfg) {
+                    const qs = new URLSearchParams({
+                        action:     'saveApiConfig',
+                        apiUser:    cfg.apiUser || '',
+                        apiPass:    cfg.apiPass || '',
+                        sid:        cfg.sid || '',
+                        ascription: cfg.ascription || '',
+                        paragraph:  cfg.paragraph || '',
+                        exclude:    cfg.exclude || '',
+                        uid:        cfg.uid || ''
+                    });
+                    const resp = await fetch(`${API_BASE}?${qs.toString()}`);
+                    const data = await resp.json();
+                    if (!data.success) throw new Error(data.error || '未知错误');
+                    localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+                }
 
                 window.saveApiConfig = async function() {
                     const apiUser = document.getElementById('configApiUser').value.trim();
                     const apiPass = document.getElementById('configApiPass').value.trim();
                     if (!apiUser || !apiPass) { showToast('⚠️ 请输入 API 账号和密码'); return; }
                     showToast('⏳ 正在保存 API 配置...');
-                    const fullCfg = getStoredConfig(); fullCfg.apiUser = apiUser; fullCfg.apiPass = apiPass;
                     try {
-                        const resp = await fetch(`${API_BASE}?action=saveApiConfig&apiUser=${encodeURIComponent(fullCfg.apiUser)}&apiPass=${encodeURIComponent(fullCfg.apiPass)}&sid=${encodeURIComponent(fullCfg.sid)}`);
-                        const data = await resp.json();
-                        if (!data.success) { showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误')); return; }
-                    } catch(e) { showToast('⚠️ 网络请求失败: ' + e.message); return; }
-                    localStorage.setItem('hao_admin_config', JSON.stringify(fullCfg));
-                    const el = document.getElementById('apiSaveResult'); el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2000); showToast('✅ API 配置已保存');
+                        await persistConfig(collectConfig());
+                    } catch(e) {
+                        showToast('⚠️ 保存失败: ' + e.message);
+                        return;
+                    }
+                    const el = document.getElementById('apiSaveResult');
+                    el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2000);
+                    showToast('✅ API 配置已保存（已同步到云端）');
                 };
 
                 window.saveBaseConfig = async function() {
                     const sid = document.getElementById('configSid').value.trim();
-                    const ascription = document.getElementById('configAscription').value;
-                    const paragraph = document.getElementById('configParagraph').value.trim();
-                    const exclude = document.getElementById('configExclude').value.trim();
-                    const uid = document.getElementById('configUid').value.trim();
                     if (!sid) { showToast('⚠️ 请输入项目 ID'); return; }
                     showToast('⏳ 正在保存基础配置...');
-                    const fullCfg = getStoredConfig(); fullCfg.sid = sid; fullCfg.ascription = ascription; fullCfg.paragraph = paragraph; fullCfg.exclude = exclude; fullCfg.uid = uid;
                     try {
-                        const resp = await fetch(`${API_BASE}?action=saveApiConfig&apiUser=${encodeURIComponent(fullCfg.apiUser)}&apiPass=${encodeURIComponent(fullCfg.apiPass)}&sid=${encodeURIComponent(fullCfg.sid)}`);
-                        const data = await resp.json();
-                        if (!data.success) { showToast('⚠️ 后端保存失败: ' + (data.error || '未知错误')); return; }
-                    } catch(e) { showToast('⚠️ 网络请求失败: ' + e.message); return; }
-                    localStorage.setItem('hao_admin_config', JSON.stringify(fullCfg));
-                    const el = document.getElementById('baseSaveResult'); el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2000); showToast('✅ 基础配置已保存');
+                        await persistConfig(collectConfig());
+                    } catch(e) {
+                        showToast('⚠️ 保存失败: ' + e.message);
+                        return;
+                    }
+                    const el = document.getElementById('baseSaveResult');
+                    el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2000);
+                    showToast('✅ 基础配置已保存（已同步到云端）');
                 };
+                // ================= 配置模块结束 =================
 
                 async function createOrderAndGetLink(specifiedPhone = null) {
                     const oid = 'HZ' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
