@@ -422,14 +422,14 @@
                     <div class="stat-item"><div class="num" id="activeCount">0</div><div class="label">本页等待中</div></div>
                 </div>
                 <div class="record-list" id="recordList">
-                    <div class="empty-state"><span class="icon">⏳</span>正在加载数据...</div>
+                    <div class="empty-state"><span class="icon">📭</span>点击“刷新数据”加载历史记录</div>
                 </div>
                 <div class="pagination">
                     <button class="btn-page" id="prevBtn" onclick="prevPage()" disabled>← 上一页</button>
                     <span class="page-info">第 <strong id="pageNum">1</strong> 页</span>
                     <button class="btn-page" id="nextBtn" onclick="nextPage()" disabled>下一页 →</button>
                 </div>
-                <div class="hint-text">每页 100 条 · 搜索仅作用于当前页</div>
+                <div class="hint-text">每页 20 条 · 搜索仅作用于当前页</div>
             </div>
         </div>
 
@@ -461,7 +461,7 @@
 
             const API_BASE = '/api/order';
             const ADMIN_PASSWORD = 'shinia299.';
-            const PAGE_SIZE = 100;
+            const PAGE_SIZE = 20; // 【修改】每页加载 20 条
 
             const loginBox = document.getElementById('loginBox');
             const adminBox = document.getElementById('adminBox');
@@ -506,9 +506,12 @@
                 activeView.scrollTop = 0;
 
                 if (targetId === 'tab-record') {
+                    // 保留顶部实时手机订单的逻辑
                     if (window.cachedActiveOrders && window.cachedActiveOrders.length > 0) window.renderActiveOrders(window.cachedActiveOrders);
                     window.loadActiveOrders(true);
-                    if (!window.recordLoaded) { window.loadRecords(); }
+                    // 【修改】移除了自动加载历史记录的代码，必须手动点击“刷新数据”
+                    // if (!window.recordLoaded) { window.loadRecords(); }
+                    
                     if (!window.recordPollingTimer) {
                         window.recordPollingTimer = setInterval(() => { window.loadActiveOrders(true); }, 2000);
                     }
