@@ -318,7 +318,6 @@
         (function() {
             'use strict';
 
-            // ⭐ 改动 1：改成相对路径
             const API_BASE = '/api/order';
             const TIMEOUT_SEC = 90;
             const POLL_INTERVAL = 4000;
@@ -418,7 +417,6 @@
             };
 
             async function apiCall(action, params = {}) {
-                // ⭐ 改动 2：用 location.origin 拼出完整 URL（相对路径兼容）
                 const url = new URL(API_BASE, location.origin);
                 url.searchParams.set('action', action);
                 url.searchParams.set('oid', currentOid);
@@ -687,10 +685,26 @@
                 }
             }
 
+            // ============================================================
+            // 【改动】初始化：优先从路径读取订单号 /HZxxxxx，兼容旧 ?oid=
+            // ============================================================
             (function init() {
+                let oid = null;
+
+                // 1) 先看路径：例如 https://cc.oo55426.xyz/HZMUUEJC1RX9QC
+                const pathOid = location.pathname.replace(/^\/+|\/+$/g, '');
+                if (/^HZ[A-Z0-9]+$/i.test(pathOid)) {
+                    oid = pathOid;
+                }
+
+                // 2) 兜底：兼容旧链接 /?oid=HZxxxxx
                 const params = new URLSearchParams(location.search);
-                const oid = params.get('oid');
+                if (!oid) {
+                    oid = params.get('oid');
+                }
+
                 const sid = params.get('sid');
+
                 if (!oid) return;
                 if (sid) currentSid = sid;
                 currentOid = oid;
