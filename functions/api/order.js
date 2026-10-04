@@ -54,7 +54,7 @@ export async function onRequest(context) {
       'getBalance', 'lockOrder', 'blockPhone',
       'generateCard', 'activateCard', 'verifyCard', 'cardList', 'deleteCard',
       'createOrder', 'listActiveOrders', 'listAllOrders', 'releaseAllOrders',
-      'cancelRecvPhone', 'saveApiConfig', 'rebuildOrderIndex'
+      'cancelRecvPhone', 'saveApiConfig', 'getApiConfig', 'rebuildOrderIndex'  // 新增 getApiConfig
     ];
     if (!oid && !poolActions.includes(action)) {
       return jsonResponse({ error: '缺少订单ID' }, 400);
@@ -92,8 +92,6 @@ export async function onRequest(context) {
     }
 
     // ============ 【重写】订单索引：只收录已完成订单 ============
-    // 只收录 status === 'done' 的订单（即收到过验证码的）
-    // 重建时只用 kv.list metadata，不做逐 key get，避免子请求超限
     async function buildOrderIndexFromList() {
       console.log('[order-index] 开始构建索引（仅已完成订单）...');
       const collected = [];
@@ -107,19 +105,16 @@ export async function onRequest(context) {
           if (k.name === POOL_KEY || k.name === LOG_KEY || k.name === CARD_KEY) continue;
 
           const md = k.metadata || {};
-          const status = md.status;   // 可能 undefined（旧数据）
+          const status = md.status;
           const createdAt = typeof md.createdAt === 'number' ? md.createdAt : 0;
 
-          // ★ 只保留已完成订单
-          //   - 有明确 status 的：必须 === 'done'，其它一律跳过
-          //   - 完全没有 status 的（老版本写入的订单）：保守保留，视为历史完成订单
           if (status !== undefined && status !== null && status !== 'done') continue;
 
           collected.push({ oid: k.name, createdAt });
         }
         listCursor = res.list_complete ? null : res.cursor;
         pages++;
-        if (pages > 100) {           // 安全阀：最多 10 万条
+        if (pages > 100) {
           console.warn('[order-index] 达到 100 页上限，停止扫描');
           break;
         }
@@ -140,14 +135,12 @@ export async function onRequest(context) {
 
     async function getOrderIndex() {
       const stored = await kv.get(ORDER_INDEX_KEY, { type: 'json' });
-      // 版本不匹配（或不存在）→ 自动重建，触发一次性迁移
       if (stored && stored.version === ORDER_INDEX_VERSION && Array.isArray(stored.items)) {
         return stored.items;
       }
       return await buildOrderIndexFromList();
     }
 
-    // 只有当订单变成 done 时才会调用
     async function pushToOrderIndex(oid, createdAt) {
       const items = await getOrderIndex();
       const filtered = items.filter(it => it.oid !== oid);
@@ -241,19 +234,70 @@ export async function onRequest(context) {
       await kv.put(oid, JSON.stringify(order), {
         metadata: { createdAt: order.createdAt || 0, status: 'released' }
       });
-      // done 是终态，不会离开索引；其它状态本来就不在索引里，无需处理
       return { success: true };
     }
 
     // ====== 业务分发 ======
     switch (action) {
+      // ============ 【新增】获取 API 配置 ============
+      case 'getApiConfig': {
+        const cfg = await kv.get('__api_config__', { type: 'json' }) || {};
+        return jsonResponse({
+          success: true,
+          apiUser: cfg.user || '',
+          apiPass: cfg.pass || '',
+          sid: cfg.sid || '24085',
+          ascription: cfg.ascription || '',
+          paragraph: cfg.paragraph || '',
+          exclude: cfg.exclude || '',
+          uid: cfg.uid || ''
+        });
+      }
+
+      // ============ 【修改】保存 API 配置（支持全部字段，并允许仅更新基础配置） ============
       case 'saveApiConfig': {
         const newUser = url.searchParams.get('apiUser');
         const newPass = url.searchParams.get('apiPass');
         const newSid  = url.searchParams.get('sid');
-        if (!newUser || !newPass) return jsonResponse({ error: '缺少账号或密码' }, 400);
-        await kv.put('__api_config__', JSON.stringify({ user: newUser, pass: newPass, sid: newSid }));
-        await kv.delete('__token_data__');
+        const newAscription = url.searchParams.get('ascription') || '';
+        const newParagraph = url.searchParams.get('paragraph') || '';
+        const newExclude = url.searchParams.get('exclude') || '';
+        const newUid = url.searchParams.get('uid') || '';
+
+        const existing = await kv.get('__api_config__', { type: 'json' }) || {};
+
+        let finalUser = existing.user || '';
+        let finalPass = existing.pass || '';
+
+        // 处理账号密码：如果传入了新的账号和密码，则更新；如果都为空，则保留原值；如果只传一个则报错
+        if (newUser && newPass) {
+          finalUser = newUser;
+          finalPass = newPass;
+        } else if (newUser || newPass) {
+          return jsonResponse({ error: '账号和密码必须同时提供' }, 400);
+        } else {
+          if (!finalUser || !finalPass) {
+            return jsonResponse({ error: '首次配置需要提供账号和密码' }, 400);
+          }
+        }
+
+        const newConfig = {
+          user: finalUser,
+          pass: finalPass,
+          sid: newSid || existing.sid || '24085',
+          ascription: newAscription,
+          paragraph: newParagraph,
+          exclude: newExclude,
+          uid: newUid
+        };
+
+        await kv.put('__api_config__', JSON.stringify(newConfig));
+
+        // 如果账号或密码有变化，清除旧 token
+        if (finalUser !== existing.user || finalPass !== existing.pass) {
+          await kv.delete('__token_data__');
+        }
+
         return jsonResponse({ success: true });
       }
 
@@ -305,12 +349,11 @@ export async function onRequest(context) {
         return jsonResponse({ orders });
       }
 
-      // ============ listAllOrders：只列出已完成订单 ============
       case 'listAllOrders': {
         const cursorStr = url.searchParams.get('cursor') || null;
         const limit = Math.min(parseInt(url.searchParams.get('limit')) || 100, 200);
 
-        const index = await getOrderIndex();   // 已按 createdAt 倒序，且只含 done 订单
+        const index = await getOrderIndex();
         const start = cursorStr ? Math.max(parseInt(cursorStr) || 0, 0) : 0;
         const end = Math.min(start + limit, index.length);
         const pageItems = index.slice(start, end);
@@ -329,7 +372,7 @@ export async function onRequest(context) {
           );
           batch.forEach((item, idx) => {
             const order = results[idx];
-            if (order && order.status === 'done') {   // ★ 二次兜底：只显示 done
+            if (order && order.status === 'done') {
               orders.push({
                 oid: item.oid,
                 phone: order.phone || '---',
@@ -353,7 +396,6 @@ export async function onRequest(context) {
         });
       }
 
-      // 手动重建索引
       case 'rebuildOrderIndex': {
         await kv.delete(ORDER_INDEX_KEY);
         const items = await buildOrderIndexFromList();
@@ -372,7 +414,6 @@ export async function onRequest(context) {
         return jsonResponse({ success: true, released: successCount, total: results.length, details: results });
       }
 
-      // ============ createOrder：不再入索引 ============
       case 'createOrder': {
         if (!oid) return jsonResponse({ error: '缺少订单ID' }, 400);
         const existing = await kv.get(oid, { type: 'json' });
@@ -401,7 +442,6 @@ export async function onRequest(context) {
           metadata: { createdAt, status: 'new' }
         });
 
-        // ★ 不再调用 pushToOrderIndex —— 新订单不是 done 状态，不进列表
         return jsonResponse({ success: true });
       }
 
@@ -620,7 +660,6 @@ export async function onRequest(context) {
         const tokenStr = await getValidToken();
         const orderSid = order.sid || HAOZHU.sid;
 
-        // 子流程 1：指定手机号
         if (order.assignedPhone) {
           const reqUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${orderSid}&phone=${encodeURIComponent(order.assignedPhone)}`;
           const phoneResp = await fetchWithTimeout(reqUrl);
@@ -642,7 +681,6 @@ export async function onRequest(context) {
           return jsonResponse({ error: '获取指定手机号失败：' + (phoneData.msg || '平台无该号或已被占用') }, 400);
         }
 
-        // 子流程 2：号池
         const pool = await getPool();
         const available = pool.filter(p => p.status === 'available');
         if (available.length > 0) {
@@ -669,7 +707,6 @@ export async function onRequest(context) {
           return jsonResponse({ phone, expire });
         }
 
-        // 子流程 3：平台正常取号
         const f = order.filters || {};
         let apiUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${orderSid}`;
         if (f.ascription) apiUrl += `&ascription=${encodeURIComponent(f.ascription)}`;
@@ -711,7 +748,6 @@ export async function onRequest(context) {
         return jsonResponse({ success: true });
       }
 
-      // ============ getSMS：收到验证码时，加入订单索引 ============
       case 'getSMS': {
         const order = await kv.get(oid, { type: 'json' });
         if (!order) return jsonResponse({ error: '订单不存在' }, 404);
@@ -745,7 +781,6 @@ export async function onRequest(context) {
               await removeFromActiveIndex(oid);
               await addLog(order.phone, oid, 'sms_received');
 
-              // ★ 收到验证码，加入订单索引，列表才会显示
               try {
                 await pushToOrderIndex(oid, order.createdAt || Date.now());
               } catch (e) {
