@@ -198,6 +198,156 @@
 
         .text-tertiary { color: var(--text-tertiary); font-size: 14px; }
         .text-quaternary { color: var(--text-quaternary); font-size: 13px; }
+
+        /* ===== 教程弹窗样式 ===== */
+        .tutorial-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            overflow-y: auto;
+        }
+        .tutorial-modal {
+            width: 100%;
+            max-width: 460px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            padding: 28px 20px 32px;
+            position: relative;
+            animation: modalIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.92) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .tutorial-modal::-webkit-scrollbar { width: 4px; }
+        .tutorial-modal::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+        .tutorial-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.06);
+            border: none;
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            line-height: 1;
+            z-index: 10;
+        }
+        .tutorial-close:hover { background: rgba(0, 0, 0, 0.12); }
+
+        .tutorial-title {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .tutorial-subtitle {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .tutorial-step {
+            margin-bottom: 28px;
+            background: #f8f9fc;
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .tutorial-step:last-child { margin-bottom: 0; }
+
+        .tutorial-step-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .tutorial-step-num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #0056b3);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 3px 8px rgba(0, 122, 255, 0.3);
+        }
+        .tutorial-step-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .tutorial-step-img {
+            width: 100%;
+            border-radius: var(--radius-xs);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            display: block;
+            margin-bottom: 12px;
+            background: #f0f0f5;
+            min-height: 80px;
+            object-fit: contain;
+        }
+
+        .tutorial-step-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            padding-left: 2px;
+        }
+        .tutorial-step-desc strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tutorial-tip {
+            margin-top: 24px;
+            padding: 14px 16px;
+            background: rgba(255, 149, 0, 0.08);
+            border: 1px solid rgba(255, 149, 0, 0.2);
+            border-radius: var(--radius-xs);
+            font-size: 13px;
+            color: #B25900;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .tutorial-footer-btn {
+            margin-top: 24px;
+        }
+
+        @media (max-width: 480px) {
+            .tutorial-modal { padding: 24px 16px 28px; max-height: 95vh; border-radius: 20px; }
+            .tutorial-title { font-size: 20px; }
+            .tutorial-step { padding: 14px; }
+            .tutorial-step-title { font-size: 15px; }
+            .tutorial-step-desc { font-size: 13px; }
+        }
     </style>
 </head>
 <body>
@@ -309,8 +459,75 @@
             </div>
         </div>
 
-        <div class="contact-footer" onclick="copyWx()" title="点击复制微信号">
-            购买加速器账号可直接联系V：1113630283
+        <!-- 底部：教程入口（替换原联系方式） -->
+        <div class="contact-footer" onclick="showTutorial()" title="点击查看登录教程">
+            📖 首次使用请查看登录教程
+        </div>
+    </div>
+
+    <!-- ===== 教程弹窗 ===== -->
+    <div class="tutorial-overlay hidden" id="tutorialOverlay">
+        <div class="tutorial-modal">
+            <button class="tutorial-close" onclick="closeTutorial()">✕</button>
+
+            <div class="tutorial-title">📖 登录教程</div>
+            <div class="tutorial-subtitle">首次使用请按以下步骤操作</div>
+
+            <!-- 步骤 1 -->
+            <div class="tutorial-step">
+                <div class="tutorial-step-header">
+                    <div class="tutorial-step-num">1</div>
+                    <div class="tutorial-step-title">打开加速器，进入登录页面</div>
+                </div>
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYX6JACIRtd7MvZXSER.png" alt="步骤1：打开加速器登录页面" loading="lazy">
+                <div class="tutorial-step-desc">
+                    打开迅游加速器 App，在首页或我的页面找到<strong>登录/注册</strong>入口，点击进入。
+                </div>
+            </div>
+
+            <!-- 步骤 2 -->
+            <div class="tutorial-step">
+                <div class="tutorial-step-header">
+                    <div class="tutorial-step-num">2</div>
+                    <div class="tutorial-step-title">输入手机号，获取验证码</div>
+                </div>
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYX5ZFV8LOyzHj4xc28.png" alt="步骤2：输入手机号获取验证码" loading="lazy">
+                <div class="tutorial-step-desc">
+                    在登录页面输入上方获取到的<strong>手机号码</strong>，点击<strong>获取验证码</strong>按钮，等待短信到达。
+                </div>
+            </div>
+
+            <!-- 步骤 3 -->
+            <div class="tutorial-step">
+                <div class="tutorial-step-header">
+                    <div class="tutorial-step-num">3</div>
+                    <div class="tutorial-step-title">输入验证码，完成登录</div>
+                </div>
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYXBIl0V6cpti0HZewG.png" alt="步骤3：输入验证码完成登录" loading="lazy">
+                <div class="tutorial-step-desc">
+                    收到验证码后，将<strong>验证码</strong>填入输入框，点击<strong>登录</strong>即可完成操作。
+                </div>
+            </div>
+
+            <!-- 步骤 4 -->
+            <div class="tutorial-step">
+                <div class="tutorial-step-header">
+                    <div class="tutorial-step-num">4</div>
+                    <div class="tutorial-step-title">登录成功，开始使用</div>
+                </div>
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYWzgTWNZbr763i3fBJ.png" alt="步骤4：登录成功" loading="lazy">
+                <div class="tutorial-step-desc">
+                    登录成功后即可正常使用加速器。如果登录失败，请<strong>释放当前号码</strong>，重新获取新手机号再试一次。
+                </div>
+            </div>
+
+            <div class="tutorial-tip">
+                💡 温馨提示：每个手机号仅可使用一次，验证码收到后请尽快登录。如遇问题，请联系卖家协助处理。
+            </div>
+
+            <button class="btn btn-primary tutorial-footer-btn" onclick="closeTutorial()">
+                我知道了
+            </button>
         </div>
     </div>
 
@@ -356,6 +573,34 @@
             const pollingIndicator = document.getElementById('pollingIndicator');
             const pollCount = document.getElementById('pollCount');
 
+            // ===== 教程弹窗 =====
+            const tutorialOverlay = document.getElementById('tutorialOverlay');
+
+            window.showTutorial = function() {
+                tutorialOverlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            };
+
+            window.closeTutorial = function() {
+                tutorialOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            };
+
+            // 点击遮罩层关闭
+            tutorialOverlay.addEventListener('click', function(e) {
+                if (e.target === tutorialOverlay) {
+                    closeTutorial();
+                }
+            });
+
+            // ESC 关闭
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !tutorialOverlay.classList.contains('hidden')) {
+                    closeTutorial();
+                }
+            });
+
+            // ===== 以下原有逻辑保持不变 =====
             function showUI(state) {
                 initBox.classList.add('hidden');
                 phoneBox.classList.add('hidden');
@@ -410,12 +655,6 @@
                 });
             };
 
-            window.copyWx = function() {
-                navigator.clipboard.writeText('1113630283').then(() => alert('微信号已复制：1113630283')).catch(() => {
-                    alert('微信号：1113630283');
-                });
-            };
-
             async function apiCall(action, params = {}) {
                 const url = new URL(API_BASE, location.origin);
                 url.searchParams.set('action', action);
@@ -431,22 +670,6 @@
                     throw err;
                 }
                 return data;
-            }
-
-            async function checkOrderLocked() {
-                if (!currentOid) return false;
-                try {
-                    const data = await apiCall('status');
-                    if (data.status === 'released' || data.status === 'invalid') {
-                        return true;
-                    }
-                    return false;
-                } catch (e) {
-                    if (e.status === 403 || e.status === 404 || e.message.includes('释放') || e.message.includes('失效')) {
-                        return true;
-                    }
-                    return false;
-                }
             }
 
             function stopAllTimers() {
@@ -685,19 +908,15 @@
                 }
             }
 
-            // ============================================================
-            // 【改动】初始化：优先从路径读取订单号 /HZxxxxx，兼容旧 ?oid=
-            // ============================================================
+            // 初始化
             (function init() {
                 let oid = null;
 
-                // 1) 先看路径：例如 https://cc.oo55426.xyz/HZMUUEJC1RX9QC
                 const pathOid = location.pathname.replace(/^\/+|\/+$/g, '');
                 if (/^HZ[A-Z0-9]+$/i.test(pathOid)) {
                     oid = pathOid;
                 }
 
-                // 2) 兜底：兼容旧链接 /?oid=HZxxxxx
                 const params = new URLSearchParams(location.search);
                 if (!oid) {
                     oid = params.get('oid');
