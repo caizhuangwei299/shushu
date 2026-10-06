@@ -431,7 +431,7 @@
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
                     我已知晓以上说明，获取手机号
                 </button>
-                <p class="text-tertiary" style="margin-top: 16px;">点击后获取手机号，有效期 90 秒</p>
+                <p class="text-tertiary" style="margin-top: 16px;">点击后获取手机号，有效期 180 秒</p>
             </div>
 
             <div id="phoneBox" class="hidden">
@@ -462,7 +462,7 @@
                     </span>
                 </div>
 
-                <div id="countdownDisplay" class="hidden">90s</div>
+                <div id="countdownDisplay" class="hidden">180s</div>
 
                 <div class="polling-indicator" id="pollingIndicator">
                     <span class="polling-dot"></span>
@@ -472,12 +472,12 @@
                 <p class="text-quaternary" style="margin-top: 8px;">自动检测中，收到验证码将自动显示</p>
 
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
-                    释放手机号，重新获取（90秒后可操作）
+                    释放手机号，重新获取（180秒后可操作）
                 </button>
             </div>
 
             <div id="timeoutBox" class="hidden">
-                <div class="status-text status-warning">⏰ 手机号已过期（90秒未收到验证码）</div>
+                <div class="status-text status-warning">⏰ 手机号已过期（180秒未收到验证码）</div>
                 <p class="text-tertiary" style="margin-top: 8px;">号码已自动释放，请重新获取新号码</p>
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtnTimeout" style="margin-top: 16px;">重新获取手机号</button>
             </div>
@@ -584,9 +584,9 @@
             'use strict';
 
             const API_BASE = '/api/order';
-            const TIMEOUT_SEC = 90;
+            const TIMEOUT_SEC = 180;              // ← 已由 90 改为 180
             const POLL_INTERVAL = 4000;
-            const MAX_RETRIES = 30;
+            const MAX_RETRIES = 46;               // ← 180/4≈45，留一点冗余
 
             let currentOid = null;
             let currentSid = '24085';
