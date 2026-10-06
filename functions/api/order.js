@@ -1,5 +1,5 @@
 // ============ 全局常量 ============
-const PHONE_TTL_MS = 90 * 1000;              // 手机号有效期：90 秒
+const PHONE_TTL_MS = 180 * 1000;             // 手机号有效期：180 秒（由 90 秒修改）
 const ACTIVE_INDEX_KEY = '__active_orders__'; // 活跃订单索引键
 const ORDER_INDEX_KEY  = '__order_index__';   // 订单列表索引键
 const ORDER_INDEX_VERSION = 2;                // v2：只收录已完成（收到验证码）的订单
