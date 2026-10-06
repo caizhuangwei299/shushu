@@ -196,7 +196,7 @@
         }
         .contact-footer:hover { background: rgba(0, 122, 255, 0.12); }
 
-        /* ===== 置顶教程大按钮（接码后界面） ===== */
+        /* ===== 置顶教程大按钮（接码后 & 收到验证码后） ===== */
         .tutorial-banner {
             display: flex;
             align-items: center;
@@ -423,7 +423,7 @@
                     </div>
                 </div>
 
-                <!-- ✅ 教程入口 -->
+                <!-- ✅ 教程入口（初始界面） -->
                 <div class="contact-footer" onclick="showTutorial()" title="点击查看登录教程" style="margin-top: 0; margin-bottom: 18px;">
                     📖 首次使用请查看登录教程
                 </div>
@@ -435,7 +435,7 @@
             </div>
 
             <div id="phoneBox" class="hidden">
-                <!-- ✅ 置顶：大号教程入口 -->
+                <!-- ✅ 置顶：大号教程入口（获取手机号后） -->
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
                     <span class="tb-icon">📖</span>
                     <span>首次使用必看登录教程</span>
@@ -483,6 +483,13 @@
             </div>
 
             <div id="doneBox" class="hidden">
+                <!-- ✅ 置顶：大号教程入口（收到验证码后） -->
+                <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
+                    <span class="tb-icon">📖</span>
+                    <span>首次使用必看登录教程</span>
+                    <span class="tb-arrow">›</span>
+                </div>
+
                 <div class="done-banner">
                     <span class="icon">✅</span>
                     <div class="title">验证码已收到</div>
