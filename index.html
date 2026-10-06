@@ -196,6 +196,38 @@
         }
         .contact-footer:hover { background: rgba(0, 122, 255, 0.12); }
 
+        /* ===== 置顶教程大按钮（接码后界面） ===== */
+        .tutorial-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 20px 16px;
+            margin: 0 0 18px;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.16), rgba(0, 122, 255, 0.06));
+            border: 2.5px dashed rgba(0, 122, 255, 0.55);
+            border-radius: var(--radius-sm);
+            color: var(--primary);
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            line-height: 1.3;
+            cursor: pointer;
+            user-select: none;
+            transition: all var(--transition);
+            animation: tutorialGlow 2s ease-in-out infinite;
+        }
+        .tutorial-banner:hover { background: linear-gradient(135deg, rgba(0, 122, 255, 0.24), rgba(0, 122, 255, 0.1)); border-color: var(--primary); }
+        .tutorial-banner:active { transform: scale(0.97); }
+        .tutorial-banner .tb-icon { font-size: 26px; flex-shrink: 0; }
+        .tutorial-banner .tb-arrow { font-size: 26px; font-weight: 400; line-height: 1; margin-left: 2px; }
+
+        @keyframes tutorialGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.28); }
+            50%      { box-shadow: 0 0 0 9px rgba(0, 122, 255, 0); }
+        }
+
         .text-tertiary { color: var(--text-tertiary); font-size: 14px; }
         .text-quaternary { color: var(--text-quaternary); font-size: 13px; }
 
@@ -347,6 +379,8 @@
             .tutorial-step { padding: 14px; }
             .tutorial-step-title { font-size: 15px; }
             .tutorial-step-desc { font-size: 13px; }
+            .tutorial-banner { font-size: 19px; padding: 18px 12px; }
+            .tutorial-banner .tb-icon { font-size: 23px; }
         }
     </style>
 </head>
@@ -389,7 +423,7 @@
                     </div>
                 </div>
 
-                <!-- ✅ 教程入口：已移动到“我已知晓”按钮上方 -->
+                <!-- ✅ 教程入口 -->
                 <div class="contact-footer" onclick="showTutorial()" title="点击查看登录教程" style="margin-top: 0; margin-bottom: 18px;">
                     📖 首次使用请查看登录教程
                 </div>
@@ -401,6 +435,13 @@
             </div>
 
             <div id="phoneBox" class="hidden">
+                <!-- ✅ 置顶：大号教程入口 -->
+                <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
+                    <span class="tb-icon">📖</span>
+                    <span>首次使用必看登录教程</span>
+                    <span class="tb-arrow">›</span>
+                </div>
+
                 <div class="info-card">
                     <div class="label">手机号码</div>
                     <div class="phone-number" id="phoneDisplay">---</div>
