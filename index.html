@@ -196,7 +196,7 @@
         }
         .contact-footer:hover { background: rgba(0, 122, 255, 0.12); }
 
-        /* ===== 置顶教程大按钮（初始界面 & 接码后 & 收到验证码后） ===== */
+        /* ===== 置顶教程大按钮 ===== */
         .tutorial-banner {
             display: flex;
             align-items: center;
@@ -416,14 +416,7 @@
             <div id="statusBox"></div>
 
             <div id="initBox">
-                <div style="background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.25); border-radius: var(--radius-sm); padding: 16px 14px; margin-bottom: 24px; text-align: center;">
-                    <div style="color: var(--danger); font-weight: 700; font-size: 15px; line-height: 1.6; letter-spacing: 0.5px;">
-                        迅游加速器必须是官方下载有口令兑换入口的<br>
-                        否则获取验证后不退款！
-                    </div>
-                </div>
-
-                <!-- ✅ 首次使用教程入口（已改为大号醒目横幅） -->
+                <!-- ✅ 首次使用教程入口（大号醒目横幅） -->
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
                     <span class="tb-icon">📖</span>
                     <span>首次使用请查看登录教程</span>
@@ -431,7 +424,7 @@
                 </div>
 
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
-                    我已知晓以上说明，获取手机号
+                    我已阅读教程，获取号码
                 </button>
                 <p class="text-tertiary" style="margin-top: 16px;">点击后获取手机号，有效期 180 秒</p>
             </div>
