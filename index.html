@@ -196,7 +196,7 @@
         }
         .contact-footer:hover { background: rgba(0, 122, 255, 0.12); }
 
-        /* ===== 置顶教程大按钮（接码后 & 收到验证码后） ===== */
+        /* ===== 置顶教程大按钮（初始界面 & 接码后 & 收到验证码后） ===== */
         .tutorial-banner {
             display: flex;
             align-items: center;
@@ -423,9 +423,11 @@
                     </div>
                 </div>
 
-                <!-- ✅ 教程入口（初始界面） -->
-                <div class="contact-footer" onclick="showTutorial()" title="点击查看登录教程" style="margin-top: 0; margin-bottom: 18px;">
-                    📖 首次使用请查看登录教程
+                <!-- ✅ 首次使用教程入口（已改为大号醒目横幅） -->
+                <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
+                    <span class="tb-icon">📖</span>
+                    <span>首次使用请查看登录教程</span>
+                    <span class="tb-arrow">›</span>
                 </div>
 
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
@@ -584,9 +586,9 @@
             'use strict';
 
             const API_BASE = '/api/order';
-            const TIMEOUT_SEC = 180;              // ← 已由 90 改为 180
+            const TIMEOUT_SEC = 180;              // 手机号有效期：180 秒
             const POLL_INTERVAL = 4000;
-            const MAX_RETRIES = 46;               // ← 180/4≈45，留一点冗余
+            const MAX_RETRIES = 46;               // 180/4≈45，留一点冗余
 
             let currentOid = null;
             let currentSid = '24085';
