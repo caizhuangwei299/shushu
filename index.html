@@ -373,6 +373,136 @@
             margin-top: 24px;
         }
 
+        /* ===== 已完成：紧凑手机号 + 验证码 ===== */
+        .compact-card {
+            background: rgba(255, 255, 255, 0.55);
+            border-radius: var(--radius-sm);
+            padding: 14px 12px;
+            margin: 12px 0;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);
+        }
+        .compact-row {
+            display: flex;
+            gap: 10px;
+        }
+        .compact-col {
+            flex: 1;
+            min-width: 0;
+            background: rgba(242, 242, 247, 0.75);
+            border-radius: var(--radius-xs);
+            padding: 10px 8px;
+            text-align: center;
+        }
+        .compact-col .label {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .compact-phone {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+            user-select: all;
+            word-break: break-all;
+        }
+        .compact-code {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--primary);
+            user-select: all;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            word-break: break-all;
+        }
+        .compact-copy-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .compact-copy-row .btn-copy {
+            flex: 1;
+            margin-top: 0;
+            justify-content: center;
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+
+        /* ===== 已完成：口令兑换区 ===== */
+        .codes-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: var(--radius-sm);
+            padding: 16px 14px;
+            margin: 14px 0;
+            text-align: left;
+        }
+        .codes-header {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .code-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.06), rgba(0, 122, 255, 0.02));
+            border: 1px solid rgba(0, 122, 255, 0.15);
+            border-radius: var(--radius-xs);
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+        .code-item:last-of-type { margin-bottom: 0; }
+        .code-item-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+        .code-item-value {
+            flex: 1;
+            min-width: 0;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            user-select: all;
+            word-break: break-all;
+        }
+        .code-copy-btn {
+            flex-shrink: 0;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all var(--transition);
+        }
+        .code-copy-btn:hover { background: var(--primary-hover); }
+        .code-copy-btn:active { transform: scale(0.95); }
+        .code-copy-btn.copied { background: var(--success); }
+        .codes-note {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: rgba(255, 59, 48, 0.08);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: var(--radius-xs);
+            font-size: 12.5px;
+            color: var(--danger);
+            font-weight: 600;
+            line-height: 1.5;
+            text-align: center;
+        }
+
         @media (max-width: 480px) {
             .tutorial-modal { padding: 24px 16px 28px; max-height: 95vh; border-radius: 20px; }
             .tutorial-title { font-size: 20px; }
@@ -381,6 +511,8 @@
             .tutorial-step-desc { font-size: 13px; }
             .tutorial-banner { font-size: 19px; padding: 18px 12px; }
             .tutorial-banner .tb-icon { font-size: 23px; }
+            .compact-phone { font-size: 15px; }
+            .compact-code { font-size: 18px; letter-spacing: 1.5px; }
         }
     </style>
 </head>
@@ -416,7 +548,6 @@
             <div id="statusBox"></div>
 
             <div id="initBox">
-                <!-- ✅ 首次使用教程入口（大号醒目横幅） -->
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
                     <span class="tb-icon">📖</span>
                     <span>首次使用请查看登录教程</span>
@@ -430,7 +561,6 @@
             </div>
 
             <div id="phoneBox" class="hidden">
-                <!-- ✅ 置顶：大号教程入口（获取手机号后） -->
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
                     <span class="tb-icon">📖</span>
                     <span>首次使用必看登录教程</span>
@@ -477,28 +607,49 @@
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtnTimeout" style="margin-top: 16px;">重新获取手机号</button>
             </div>
 
+            <!-- ===== 已完成状态：上半部分紧凑手机号+验证码，下半部分口令兑换 ===== -->
             <div id="doneBox" class="hidden">
-                <!-- ✅ 置顶：大号教程入口（收到验证码后） -->
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
                     <span class="tb-icon">📖</span>
                     <span>首次使用必看登录教程</span>
                     <span class="tb-arrow">›</span>
                 </div>
 
-                <div class="done-banner">
-                    <span class="icon">✅</span>
-                    <div class="title">验证码已收到</div>
+                <!-- 紧凑：手机号 + 验证码 -->
+                <div class="compact-card">
+                    <div class="compact-row">
+                        <div class="compact-col">
+                            <div class="label">手机号</div>
+                            <div class="compact-phone" id="phoneDisplayDone">---</div>
+                        </div>
+                        <div class="compact-col">
+                            <div class="label">验证码</div>
+                            <div class="compact-code" id="codeDisplay">---</div>
+                        </div>
+                    </div>
+                    <div class="compact-copy-row">
+                        <button class="btn-copy" onclick="copyPhone()">📋 复制手机号</button>
+                        <button class="btn-copy" onclick="copyCode()">📋 复制验证码</button>
+                    </div>
                 </div>
-                <div class="info-card">
-                    <div class="label">手机号码</div>
-                    <div class="phone-number" id="phoneDisplayDone">---</div>
+
+                <!-- 口令兑换区 -->
+                <div class="codes-card">
+                    <div class="codes-header">🎫 口令兑换码（按顺序全部兑换）</div>
+                    <div class="code-item">
+                        <span class="code-item-label">口令1</span>
+                        <span class="code-item-value">xunyou456</span>
+                        <button class="code-copy-btn" onclick="copyText('xunyou456', this)">复制</button>
+                    </div>
+                    <div class="code-item">
+                        <span class="code-item-label">口令2</span>
+                        <span class="code-item-value">TE727DUH</span>
+                        <button class="code-copy-btn" onclick="copyText('TE727DUH', this)">复制</button>
+                    </div>
+                    <div class="codes-note">⚠️ 口令按顺序全部兑换全部激活，不按顺序和囤货不售后</div>
                 </div>
-                <div class="info-card">
-                    <div class="label">验证码</div>
-                    <div class="code-number" id="codeDisplay">---</div>
-                </div>
-                <button class="btn-copy" onclick="copyCode()">复制验证码</button>
-                <p class="text-tertiary" style="margin-top: 20px; color: var(--danger);">🔒 此订单已完成，链接永久失效。</p>
+
+                <p class="text-tertiary" style="margin-top: 16px; color: var(--danger);">🔒 此订单已完成，链接永久失效。</p>
             </div>
 
             <div id="errorBox" class="hidden">
@@ -579,9 +730,9 @@
             'use strict';
 
             const API_BASE = '/api/order';
-            const TIMEOUT_SEC = 180;              // 手机号有效期：180 秒
+            const TIMEOUT_SEC = 180;
             const POLL_INTERVAL = 4000;
-            const MAX_RETRIES = 46;               // 180/4≈45，留一点冗余
+            const MAX_RETRIES = 46;
 
             let currentOid = null;
             let currentSid = '24085';
@@ -629,19 +780,57 @@
                 document.body.style.overflow = '';
             };
 
-            // 点击遮罩层关闭
             tutorialOverlay.addEventListener('click', function(e) {
                 if (e.target === tutorialOverlay) {
                     closeTutorial();
                 }
             });
 
-            // ESC 关闭
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && !tutorialOverlay.classList.contains('hidden')) {
                     closeTutorial();
                 }
             });
+
+            // ===== 复制工具函数 =====
+            function fallbackCopy(text, btn) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    if (btn) {
+                        btn.classList.add('copied');
+                        btn.textContent = '已复制 ✓';
+                        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '复制'; }, 1500);
+                    } else {
+                        alert('已复制');
+                    }
+                } catch (err) {
+                    alert('复制失败，请手动复制');
+                }
+                document.body.removeChild(ta);
+            }
+
+            window.copyText = function(text, btn) {
+                if (!text) return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        if (btn) {
+                            btn.classList.add('copied');
+                            btn.textContent = '已复制 ✓';
+                            setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '复制'; }, 1500);
+                        } else {
+                            alert('已复制');
+                        }
+                    }).catch(() => fallbackCopy(text, btn));
+                } else {
+                    fallbackCopy(text, btn);
+                }
+            };
 
             // ===== 以下原有逻辑保持不变 =====
             function showUI(state) {
@@ -685,17 +874,13 @@
             window.copyPhone = function() {
                 const phone = currentPhone || phoneDisplay.textContent.trim();
                 if (!phone || phone === '---') return;
-                navigator.clipboard.writeText(phone).then(() => alert('手机号已复制')).catch(() => {
-                    alert('复制失败，请手动复制');
-                });
+                copyText(phone);
             };
 
             window.copyCode = function() {
                 const code = pureCode || extractNumbers(codeDisplay.textContent);
                 if (!code) return;
-                navigator.clipboard.writeText(code).then(() => alert('验证码已复制')).catch(() => {
-                    alert('复制失败，请手动复制');
-                });
+                copyText(code);
             };
 
             async function apiCall(action, params = {}) {
