@@ -2,7 +2,7 @@
 const PHONE_TTL_MS = 180 * 1000;  // 手机号有效期：180 秒
 
 // ============ 带超时的 fetch ============
-async function fetchWithTimeout(url, options = {}, timeout = 4000) {
+async function fetchWithTimeout(url, options = {}, timeout = 15000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
