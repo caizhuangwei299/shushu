@@ -678,7 +678,10 @@
                 };
 
                 async function createOrderAndGetLink(specifiedPhone = null) {
-                    const oid = 'HZ' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+                    // 【改动】订单号缩短：HZ + 4位时间戳(36进制) + 4位随机字符 = 共 10 位（原为 14 位）
+                    const oid = 'HZ'
+                        + Date.now().toString(36).toUpperCase().slice(-4)
+                        + Math.random().toString(36).substring(2, 6).toUpperCase();
                     const curCfg = getStoredConfig();
                     let apiUrl = `${API_BASE}?action=createOrder&oid=${oid}&sid=${curCfg.sid}`;
                     if (specifiedPhone) { apiUrl += `&phone=${encodeURIComponent(specifiedPhone)}`; } 
