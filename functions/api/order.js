@@ -1,6 +1,16 @@
 // ============ 全局常量 ============
 const PHONE_TTL_MS = 180 * 1000;  // 手机号有效期：180 秒
 
+// ============ 订单号格式校验 ============
+// 兼容新旧两种长度：
+//   旧订单：HZ + 12 位（14 位）
+//   新订单：HZ + 8 位（10 位）
+// 统一放宽为 HZ 开头 + 6~20 位大写字母/数字，大小写不敏感
+const OID_PATTERN = /^HZ[A-Z0-9]{6,20}$/i;
+function isValidOid(value) {
+  return typeof value === 'string' && OID_PATTERN.test(value);
+}
+
 // ============ 带超时的 fetch ============
 async function fetchWithTimeout(url, options = {}, timeout = 15000) {
   const controller = new AbortController();
@@ -32,6 +42,11 @@ export async function onRequest(context) {
 
   const action = url.searchParams.get('action');
   const oid = url.searchParams.get('oid');
+
+  // 【改动】统一校验 oid 格式，拒绝非法订单号（防止异常数据写入 D1）
+  if (oid && !isValidOid(oid)) {
+    return jsonResponse({ error: '订单ID格式不正确' }, 400);
+  }
 
   try {
     const DB = env.DB;
