@@ -1,8 +1,5 @@
 // ============ 全局常量 ============
-const PHONE_TTL_MS = 180 * 1000;             // 手机号有效期：180 秒（由 90 秒修改）
-const ACTIVE_INDEX_KEY = '__active_orders__'; // 活跃订单索引键
-const ORDER_INDEX_KEY  = '__order_index__';   // 订单列表索引键
-const ORDER_INDEX_VERSION = 2;                // v2：只收录已完成（收到验证码）的订单
+const PHONE_TTL_MS = 180 * 1000;  // 手机号有效期：180 秒
 
 // ============ 带超时的 fetch ============
 async function fetchWithTimeout(url, options = {}, timeout = 4000) {
@@ -37,14 +34,24 @@ export async function onRequest(context) {
   const oid = url.searchParams.get('oid');
 
   try {
-    const kv = env.ORDERS;
-    if (!kv) throw new Error('严重错误：后端 KV 数据库 (ORDERS) 未绑定');
+    const DB = env.DB;
+    if (!DB) throw new Error('严重错误：D1 数据库 (DB) 未绑定');
 
-    const POOL_KEY = 'phone_pool';
-    const LOG_KEY  = 'phone_logs';
-    const CARD_KEY = 'card_keys';
+    // ===== 配置读写工具（替代 __api_config__ / __token_data__）=====
+    async function getConfig(key) {
+      const row = await DB.prepare('SELECT value FROM kv_store WHERE key = ?').bind(key).first();
+      return row ? JSON.parse(row.value) : null;
+    }
+    async function putConfig(key, obj) {
+      await DB.prepare(
+        'INSERT INTO kv_store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
+      ).bind(key, JSON.stringify(obj)).run();
+    }
+    async function deleteConfig(key) {
+      await DB.prepare('DELETE FROM kv_store WHERE key = ?').bind(key).run();
+    }
 
-    const apiCfg = await kv.get('__api_config__', { type: 'json' }) || {};
+    const apiCfg = await getConfig('__api_config__') || {};
     const apiUser = apiCfg.user || '';
     const apiPass = apiCfg.pass || '';
     const sid = url.searchParams.get('sid') || apiCfg.sid || '24085';
@@ -54,7 +61,7 @@ export async function onRequest(context) {
       'getBalance', 'lockOrder', 'blockPhone',
       'generateCard', 'activateCard', 'verifyCard', 'cardList', 'deleteCard',
       'createOrder', 'listActiveOrders', 'listAllOrders', 'releaseAllOrders',
-      'cancelRecvPhone', 'saveApiConfig', 'getApiConfig', 'rebuildOrderIndex'  // 新增 getApiConfig
+      'cancelRecvPhone', 'saveApiConfig', 'getApiConfig', 'rebuildOrderIndex'
     ];
     if (!oid && !poolActions.includes(action)) {
       return jsonResponse({ error: '缺少订单ID' }, 400);
@@ -62,108 +69,107 @@ export async function onRequest(context) {
 
     const HAOZHU = { server: 'api.haozhuma.com', user: apiUser, pass: apiPass, sid };
 
-    async function getPool() { const p = await kv.get(POOL_KEY, { type: 'json' }); return p || []; }
-    async function savePool(pool) { await kv.put(POOL_KEY, JSON.stringify(pool)); }
-
-    async function getLogs() { const l = await kv.get(LOG_KEY, { type: 'json' }); return l || []; }
-    async function saveLogs(logs) {
-      if (logs.length > 100) logs = logs.slice(-100);
-      await kv.put(LOG_KEY, JSON.stringify(logs));
+    // ===== 订单读写 =====
+    async function getOrder(oid) {
+      const row = await DB.prepare('SELECT * FROM orders WHERE oid = ?').bind(oid).first();
+      if (!row) return null;
+      return {
+        status: row.status,
+        sid: row.sid,
+        assignedPhone: row.assigned_phone,
+        phone: row.phone,
+        expire: row.expire,
+        code: row.code,
+        fromPool: !!row.from_pool,
+        createdAt: row.created_at,
+        doneTime: row.done_time,
+        phoneAssignedAt: row.phone_assigned_at,
+        filters: row.filters_json ? JSON.parse(row.filters_json) : {}
+      };
     }
-    async function addLog(phone, oid, action) {
-      if (action !== 'sms_received') return;
-      const logs = await getLogs();
-      logs.push({ phone, oid, action, time: new Date().toISOString() });
-      await saveLogs(logs);
+
+    async function saveOrder(oid, order) {
+      await DB.prepare(`
+        INSERT INTO orders (oid, status, sid, assigned_phone, phone, expire, code, from_pool,
+                            created_at, done_time, phone_assigned_at, filters_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(oid) DO UPDATE SET
+          status = excluded.status,
+          sid = excluded.sid,
+          assigned_phone = excluded.assigned_phone,
+          phone = excluded.phone,
+          expire = excluded.expire,
+          code = excluded.code,
+          from_pool = excluded.from_pool,
+          done_time = excluded.done_time,
+          phone_assigned_at = excluded.phone_assigned_at,
+          filters_json = excluded.filters_json
+      `).bind(
+        oid,
+        order.status || 'new',
+        order.sid || null,
+        order.assignedPhone || null,
+        order.phone || null,
+        order.expire || null,
+        order.code || null,
+        order.fromPool ? 1 : 0,
+        order.createdAt || 0,
+        order.doneTime || null,
+        order.phoneAssignedAt || null,
+        order.filters ? JSON.stringify(order.filters) : null
+      ).run();
     }
 
-    async function getCards() { const c = await kv.get(CARD_KEY, { type: 'json' }); return c || []; }
-    async function saveCards(cards) { await kv.put(CARD_KEY, JSON.stringify(cards)); }
+    // ===== 手机池 =====
+    async function getPool() {
+      const { results } = await DB.prepare('SELECT * FROM phone_pool').all();
+      return results.map(r => ({
+        phone: r.phone,
+        status: r.status,
+        oid: r.oid,
+        expire: r.expire
+      }));
+    }
 
-    // ============ 活跃订单索引 ============
+    // ===== 卡密 =====
+    async function getCards() {
+      const { results } = await DB.prepare('SELECT * FROM cards').all();
+      return results.map(r => ({
+        key: r.key,
+        type: r.type,
+        duration: r.duration,
+        activated: !!r.activated,
+        activated_at: r.activated_at,
+        expire_at: r.expire_at,
+        created_at: r.created_at
+      }));
+    }
+
+    // ===== 活跃订单索引 =====
     async function updateActiveIndex(oid, phone, expire) {
-      let index = await kv.get(ACTIVE_INDEX_KEY, { type: 'json' }) || {};
-      index[oid] = { oid, phone, expire };
-      await kv.put(ACTIVE_INDEX_KEY, JSON.stringify(index));
+      await DB.prepare(
+        'INSERT INTO active_orders (oid, phone, expire) VALUES (?, ?, ?) ' +
+        'ON CONFLICT(oid) DO UPDATE SET phone = excluded.phone, expire = excluded.expire'
+      ).bind(oid, phone, expire).run();
     }
     async function removeFromActiveIndex(oid) {
-      let index = await kv.get(ACTIVE_INDEX_KEY, { type: 'json' }) || {};
-      if (index[oid]) { delete index[oid]; await kv.put(ACTIVE_INDEX_KEY, JSON.stringify(index)); }
+      await DB.prepare('DELETE FROM active_orders WHERE oid = ?').bind(oid).run();
     }
 
-    // ============ 【重写】订单索引：只收录已完成订单 ============
-    async function buildOrderIndexFromList() {
-      console.log('[order-index] 开始构建索引（仅已完成订单）...');
-      const collected = [];
-      let listCursor = null;
-      let pages = 0;
-
-      do {
-        const res = await kv.list({ limit: 1000, cursor: listCursor });
-        for (const k of res.keys) {
-          if (k.name.startsWith('__')) continue;
-          if (k.name === POOL_KEY || k.name === LOG_KEY || k.name === CARD_KEY) continue;
-
-          const md = k.metadata || {};
-          const status = md.status;
-          const createdAt = typeof md.createdAt === 'number' ? md.createdAt : 0;
-
-          if (status !== undefined && status !== null && status !== 'done') continue;
-
-          collected.push({ oid: k.name, createdAt });
-        }
-        listCursor = res.list_complete ? null : res.cursor;
-        pages++;
-        if (pages > 100) {
-          console.warn('[order-index] 达到 100 页上限，停止扫描');
-          break;
-        }
-      } while (listCursor);
-
-      collected.sort((a, b) => {
-        if (b.createdAt !== a.createdAt) return b.createdAt - a.createdAt;
-        return String(b.oid).localeCompare(String(a.oid), undefined, { numeric: true });
-      });
-
-      await kv.put(ORDER_INDEX_KEY, JSON.stringify({
-        version: ORDER_INDEX_VERSION,
-        items: collected
-      }));
-      console.log(`[order-index] 构建完成，共 ${collected.length} 条`);
-      return collected;
+    // ===== 日志 =====
+    async function addLog(phone, oid, action) {
+      if (action !== 'sms_received') return;
+      await DB.batch([
+        DB.prepare(
+          'INSERT INTO phone_logs (phone, oid, action, time) VALUES (?, ?, ?, ?)'
+        ).bind(phone, oid, action, new Date().toISOString()),
+        DB.prepare(
+          'DELETE FROM phone_logs WHERE id NOT IN (SELECT id FROM phone_logs ORDER BY id DESC LIMIT 100)'
+        )
+      ]);
     }
 
-    async function getOrderIndex() {
-      const stored = await kv.get(ORDER_INDEX_KEY, { type: 'json' });
-      if (stored && stored.version === ORDER_INDEX_VERSION && Array.isArray(stored.items)) {
-        return stored.items;
-      }
-      return await buildOrderIndexFromList();
-    }
-
-    async function pushToOrderIndex(oid, createdAt) {
-      const items = await getOrderIndex();
-      const filtered = items.filter(it => it.oid !== oid);
-      filtered.unshift({ oid, createdAt: createdAt || Date.now() });
-      if (filtered.length > 20000) filtered.length = 20000;
-      await kv.put(ORDER_INDEX_KEY, JSON.stringify({
-        version: ORDER_INDEX_VERSION,
-        items: filtered
-      }));
-    }
-
-    async function removeFromOrderIndex(oid) {
-      const stored = await kv.get(ORDER_INDEX_KEY, { type: 'json' });
-      if (!stored || !Array.isArray(stored.items)) return;
-      const filtered = stored.items.filter(it => it.oid !== oid);
-      if (filtered.length !== stored.items.length) {
-        await kv.put(ORDER_INDEX_KEY, JSON.stringify({
-          version: ORDER_INDEX_VERSION,
-          items: filtered
-        }));
-      }
-    }
-
+    // ===== 卡密生成 =====
     function generateCardKey() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       const segment = () => {
@@ -174,10 +180,11 @@ export async function onRequest(context) {
       return `HZ-${segment()}-${segment()}`;
     }
 
+    // ===== Token =====
     async function getValidToken() {
       if (!HAOZHU.user || !HAOZHU.pass) throw new Error('未配置接码平台账号密码');
 
-      const tokenData = await kv.get('__token_data__', { type: 'json' });
+      const tokenData = await getConfig('__token_data__');
       let tokenStr = tokenData ? tokenData.token : null;
       let tokenExpiry = tokenData ? tokenData.expire : 0;
       const tokenApiUser = tokenData ? tokenData.apiUser : null;
@@ -194,9 +201,9 @@ export async function onRequest(context) {
         if (loginData.code == 0) {
           tokenStr = loginData.token || loginData.Token || loginData.access_token;
           tokenExpiry = Date.now() + 3500000;
-          await kv.put('__token_data__', JSON.stringify({
+          await putConfig('__token_data__', {
             token: tokenStr, expire: tokenExpiry, apiUser: HAOZHU.user, apiPass: HAOZHU.pass
-          }));
+          });
         } else {
           throw new Error('接码平台登录失败：' + (loginData.msg || ''));
         }
@@ -204,15 +211,13 @@ export async function onRequest(context) {
       return tokenStr;
     }
 
+    // ===== 释放订单号码 =====
     async function releaseOrderPhone(order, oid) {
       if (!order || !order.phone) return;
       if (order.fromPool) {
-        const pool = await getPool();
-        const entry = pool.find(p => p.phone === order.phone);
-        if (entry && entry.status === 'in_use') {
-          entry.status = 'available'; entry.oid = null; entry.expire = null;
-          await savePool(pool);
-        }
+        await DB.prepare(
+          "UPDATE phone_pool SET status = 'available', oid = NULL, expire = NULL WHERE phone = ? AND status = 'in_use'"
+        ).bind(order.phone).run();
       } else {
         try {
           const tokenStr = await getValidToken();
@@ -224,24 +229,22 @@ export async function onRequest(context) {
     }
 
     async function releaseOrderByOid(oid) {
-      const order = await kv.get(oid, { type: 'json' });
+      const order = await getOrder(oid);
       if (!order) return { success: false, error: '订单不存在' };
       if (order.status === 'done') return { success: false, error: '订单已完成，无法释放' };
       if (order.status === 'released') return { success: false, error: '订单已被释放过' };
 
       await releaseOrderPhone(order, oid);
-      order.status = 'released'; order.phone = null; order.expire = null; order.code = null;
-      await kv.put(oid, JSON.stringify(order), {
-        metadata: { createdAt: order.createdAt || 0, status: 'released' }
-      });
+      await DB.prepare(
+        "UPDATE orders SET status = 'released', phone = NULL, expire = NULL, code = NULL WHERE oid = ?"
+      ).bind(oid).run();
       return { success: true };
     }
 
-    // ====== 业务分发 ======
+    // ===== 业务分发 =====
     switch (action) {
-      // ============ 【新增】获取 API 配置 ============
       case 'getApiConfig': {
-        const cfg = await kv.get('__api_config__', { type: 'json' }) || {};
+        const cfg = await getConfig('__api_config__') || {};
         return jsonResponse({
           success: true,
           apiUser: cfg.user || '',
@@ -254,7 +257,6 @@ export async function onRequest(context) {
         });
       }
 
-      // ============ 【修改】保存 API 配置（支持全部字段，并允许仅更新基础配置） ============
       case 'saveApiConfig': {
         const newUser = url.searchParams.get('apiUser');
         const newPass = url.searchParams.get('apiPass');
@@ -264,12 +266,11 @@ export async function onRequest(context) {
         const newExclude = url.searchParams.get('exclude') || '';
         const newUid = url.searchParams.get('uid') || '';
 
-        const existing = await kv.get('__api_config__', { type: 'json' }) || {};
+        const existing = await getConfig('__api_config__') || {};
 
         let finalUser = existing.user || '';
         let finalPass = existing.pass || '';
 
-        // 处理账号密码：如果传入了新的账号和密码，则更新；如果都为空，则保留原值；如果只传一个则报错
         if (newUser && newPass) {
           finalUser = newUser;
           finalPass = newPass;
@@ -291,11 +292,10 @@ export async function onRequest(context) {
           uid: newUid
         };
 
-        await kv.put('__api_config__', JSON.stringify(newConfig));
+        await putConfig('__api_config__', newConfig);
 
-        // 如果账号或密码有变化，清除旧 token
         if (finalUser !== existing.user || finalPass !== existing.pass) {
-          await kv.delete('__token_data__');
+          await deleteConfig('__token_data__');
         }
 
         return jsonResponse({ success: true });
@@ -311,21 +311,20 @@ export async function onRequest(context) {
           const cancelData = await cancelResp.json();
 
           if (cancelData.code == 0 || cancelData.msg?.includes('成功')) {
-            const pool = await getPool();
-            const pEntry = pool.find(p => p.phone === phone);
-            if (pEntry && pEntry.status === 'in_use') {
-              if (pEntry.oid) {
-                const order = await kv.get(pEntry.oid, { type: 'json' });
+            const entry = await DB.prepare('SELECT * FROM phone_pool WHERE phone = ?').bind(phone).first();
+            if (entry && entry.status === 'in_use') {
+              if (entry.oid) {
+                const order = await getOrder(entry.oid);
                 if (order && order.status === 'active') {
-                  order.status = 'released'; order.phone = null; order.expire = null;
-                  await kv.put(pEntry.oid, JSON.stringify(order), {
-                    metadata: { createdAt: order.createdAt || 0, status: 'released' }
-                  });
-                  await removeFromActiveIndex(pEntry.oid);
+                  await DB.batch([
+                    DB.prepare("UPDATE orders SET status = 'released', phone = NULL, expire = NULL WHERE oid = ?").bind(entry.oid),
+                    DB.prepare('DELETE FROM active_orders WHERE oid = ?').bind(entry.oid)
+                  ]);
                 }
               }
-              pEntry.status = 'available'; pEntry.oid = null; pEntry.expire = null;
-              await savePool(pool);
+              await DB.prepare(
+                "UPDATE phone_pool SET status = 'available', oid = NULL, expire = NULL WHERE phone = ?"
+              ).bind(phone).run();
             }
             return jsonResponse({ success: true, msg: cancelData.msg || '释放成功' });
           }
@@ -336,87 +335,84 @@ export async function onRequest(context) {
       }
 
       case 'listActiveOrders': {
-        const activeIndex = await kv.get(ACTIVE_INDEX_KEY, { type: 'json' }) || {};
         const now = Date.now();
-        let changed = false;
-        const orders = [];
-        for (const oid in activeIndex) {
-          const item = activeIndex[oid];
-          if (item.expire && now >= item.expire) { delete activeIndex[oid]; changed = true; }
-          else orders.push(item);
-        }
-        if (changed) await kv.put(ACTIVE_INDEX_KEY, JSON.stringify(activeIndex));
-        return jsonResponse({ orders });
+        await DB.prepare('DELETE FROM active_orders WHERE expire IS NOT NULL AND expire <= ?').bind(now).run();
+        const { results } = await DB.prepare('SELECT oid, phone, expire FROM active_orders').all();
+        return jsonResponse({ orders: results });
       }
 
       case 'listAllOrders': {
         const cursorStr = url.searchParams.get('cursor') || null;
         const limit = Math.min(parseInt(url.searchParams.get('limit')) || 100, 200);
 
-        const index = await getOrderIndex();
-        const start = cursorStr ? Math.max(parseInt(cursorStr) || 0, 0) : 0;
-        const end = Math.min(start + limit, index.length);
-        const pageItems = index.slice(start, end);
-
-        const orders = [];
-        const BATCH_SIZE = 20;
-        for (let i = 0; i < pageItems.length; i += BATCH_SIZE) {
-          const batch = pageItems.slice(i, i + BATCH_SIZE);
-          const results = await Promise.all(
-            batch.map(item =>
-              kv.get(item.oid, { type: 'json' }).catch(e => {
-                console.error(`读取订单 ${item.oid} 失败:`, e);
-                return null;
-              })
-            )
-          );
-          batch.forEach((item, idx) => {
-            const order = results[idx];
-            if (order && order.status === 'done') {
-              orders.push({
-                oid: item.oid,
-                phone: order.phone || '---',
-                assignedPhone: order.assignedPhone || '',
-                status: order.status,
-                code: order.code || '',
-                expire: order.expire || null,
-                doneTime: order.doneTime || null,
-                createdAt: order.createdAt || item.createdAt || null,
-                phoneAssignedAt: order.phoneAssignedAt || null
-              });
-            }
-          });
+        // 游标格式：`createdAt:oid`（复合游标，避免同一毫秒内翻页丢数据）
+        let cursor = null;
+        if (cursorStr) {
+          const idx = cursorStr.indexOf(':');
+          if (idx > 0) {
+            const createdAt = Number(cursorStr.slice(0, idx));
+            const cursorOid = cursorStr.slice(idx + 1);
+            if (Number.isFinite(createdAt) && cursorOid) cursor = { createdAt, oid: cursorOid };
+          }
         }
+
+        let sql = `SELECT oid, phone, assigned_phone, status, code, expire, done_time, created_at, phone_assigned_at
+                   FROM orders WHERE status = 'done'`;
+        const params = [];
+        if (cursor) {
+          sql += ' AND (created_at < ? OR (created_at = ? AND oid < ?))';
+          params.push(cursor.createdAt, cursor.createdAt, cursor.oid);
+        }
+        sql += ' ORDER BY created_at DESC, oid DESC LIMIT ?';
+        params.push(limit);
+
+        const { results } = await DB.prepare(sql).bind(...params).all();
+
+        const orders = results.map(r => ({
+          oid: r.oid,
+          phone: r.phone || '---',
+          assignedPhone: r.assigned_phone || '',
+          status: r.status,
+          code: r.code || '',
+          expire: r.expire || null,
+          doneTime: r.done_time || null,
+          createdAt: r.created_at || null,
+          phoneAssignedAt: r.phone_assigned_at || null
+        }));
+
+        const totalRow = await DB.prepare("SELECT COUNT(*) AS c FROM orders WHERE status = 'done'").first();
+
+        const last = orders[orders.length - 1];
+        const hasMore = orders.length === limit;
+        const nextCursor = hasMore && last ? `${last.createdAt}:${last.oid}` : null;
 
         return jsonResponse({
           orders,
-          cursor: end < index.length ? String(end) : null,
-          list_complete: end >= index.length,
-          total: index.length
+          cursor: nextCursor,
+          list_complete: !hasMore,
+          total: totalRow ? totalRow.c : 0
         });
       }
 
       case 'rebuildOrderIndex': {
-        await kv.delete(ORDER_INDEX_KEY);
-        const items = await buildOrderIndexFromList();
-        return jsonResponse({ success: true, total: items.length });
+        // D1 模式不再需要 JSON 索引，保留接口以兼容前端
+        return jsonResponse({ success: true, total: 0, message: 'D1 模式无需重建索引' });
       }
 
       case 'releaseAllOrders': {
-        const activeIndex = await kv.get(ACTIVE_INDEX_KEY, { type: 'json' }) || {};
-        const activeOids = Object.keys(activeIndex);
-        const results = [];
-        for (const oid of activeOids) {
-          const result = await releaseOrderByOid(oid);
-          results.push({ oid, success: result.success, error: result.error });
+        const { results } = await DB.prepare('SELECT oid FROM active_orders').all();
+        const details = [];
+        for (const row of results) {
+          const result = await releaseOrderByOid(row.oid);
+          details.push({ oid: row.oid, success: result.success, error: result.error });
         }
-        const successCount = results.filter(r => r.success).length;
-        return jsonResponse({ success: true, released: successCount, total: results.length, details: results });
+        const successCount = details.filter(r => r.success).length;
+        return jsonResponse({ success: true, released: successCount, total: details.length, details });
       }
 
       case 'createOrder': {
         if (!oid) return jsonResponse({ error: '缺少订单ID' }, 400);
-        const existing = await kv.get(oid, { type: 'json' });
+        const existing = await getOrder(oid);
         if (existing) return jsonResponse({ error: '订单已存在' }, 400);
 
         const specifiedPhone = url.searchParams.get('phone') || '';
@@ -438,10 +434,7 @@ export async function onRequest(context) {
           filters: { ascription, paragraph, exclude, isp, province, uid }
         };
 
-        await kv.put(oid, JSON.stringify(newOrder), {
-          metadata: { createdAt, status: 'new' }
-        });
-
+        await saveOrder(oid, newOrder);
         return jsonResponse({ success: true });
       }
 
@@ -450,39 +443,41 @@ export async function onRequest(context) {
         const count = parseInt(url.searchParams.get('count')) || 1;
         if (count < 1 || count > 100) return jsonResponse({ error: '数量需在1-100之间' }, 400);
         const duration = type === 'month' ? 30 : 1;
-        const cards = await getCards();
         const generated = [];
+        const stmts = [];
+        const now = Date.now();
         for (let i = 0; i < count; i++) {
           const key = generateCardKey();
-          cards.push({ key, type, duration, activated: false, activated_at: null, expire_at: null, created_at: Date.now() });
+          stmts.push(
+            DB.prepare('INSERT INTO cards (key, type, duration, activated, created_at) VALUES (?, ?, ?, 0, ?)')
+              .bind(key, type, duration, now)
+          );
           generated.push(key);
         }
-        await saveCards(cards);
+        await DB.batch(stmts);
         return jsonResponse({ success: true, keys: generated });
       }
 
       case 'activateCard': {
         const key = url.searchParams.get('key');
         if (!key) return jsonResponse({ error: '缺少卡密' }, 400);
-        const cards = await getCards();
-        const card = cards.find(c => c.key === key);
+        const card = await DB.prepare('SELECT * FROM cards WHERE key = ?').bind(key).first();
         if (!card) return jsonResponse({ error: '卡密不存在' }, 404);
         if (card.activated) {
           if (Date.now() > card.expire_at) return jsonResponse({ error: '卡密已过期' }, 400);
           return jsonResponse({ success: true, expire_at: card.expire_at });
         }
         const now = Date.now();
-        card.activated = true; card.activated_at = now;
-        card.expire_at = now + card.duration * 86400 * 1000;
-        await saveCards(cards);
-        return jsonResponse({ success: true, expire_at: card.expire_at });
+        const expireAt = now + card.duration * 86400 * 1000;
+        await DB.prepare('UPDATE cards SET activated = 1, activated_at = ?, expire_at = ? WHERE key = ?')
+          .bind(now, expireAt, key).run();
+        return jsonResponse({ success: true, expire_at: expireAt });
       }
 
       case 'verifyCard': {
         const key = url.searchParams.get('key');
         if (!key) return jsonResponse({ error: '缺少卡密' }, 400);
-        const cards = await getCards();
-        const card = cards.find(c => c.key === key);
+        const card = await DB.prepare('SELECT * FROM cards WHERE key = ?').bind(key).first();
         if (!card) return jsonResponse({ error: '卡密不存在' }, 404);
         if (!card.activated) return jsonResponse({ valid: false, msg: '未激活' });
         if (Date.now() > card.expire_at) return jsonResponse({ valid: false, msg: '已过期' });
@@ -497,9 +492,7 @@ export async function onRequest(context) {
       case 'deleteCard': {
         const key = url.searchParams.get('key');
         if (!key) return jsonResponse({ error: '缺少卡密' }, 400);
-        let cards = await getCards();
-        cards = cards.filter(c => c.key !== key);
-        await saveCards(cards);
+        await DB.prepare('DELETE FROM cards WHERE key = ?').bind(key).run();
         return jsonResponse({ success: true });
       }
 
@@ -525,9 +518,7 @@ export async function onRequest(context) {
         const blockResp = await fetchWithTimeout(`https://${HAOZHU.server}/sms/?api=addBlacklist&token=${tokenStr}&sid=${HAOZHU.sid}&phone=${phone}`);
         const blockData = await blockResp.json();
         if (blockData.code == 0) {
-          let pool = await getPool();
-          pool = pool.filter(p => p.phone !== phone);
-          await savePool(pool);
+          await DB.prepare('DELETE FROM phone_pool WHERE phone = ?').bind(phone).run();
           return jsonResponse({ success: true });
         }
         return jsonResponse({ error: blockData.msg || '拉黑失败' });
@@ -547,93 +538,88 @@ export async function onRequest(context) {
       case 'addPhone': {
         const phone = url.searchParams.get('phone');
         if (!phone) return jsonResponse({ error: '缺少 phone 参数' }, 400);
-        const pool = await getPool();
-        if (pool.some(p => p.phone === phone)) return jsonResponse({ error: '号码已存在' }, 400);
-        pool.push({ phone, status: 'available', oid: null, expire: null });
-        await savePool(pool);
+        const existing = await DB.prepare('SELECT phone FROM phone_pool WHERE phone = ?').bind(phone).first();
+        if (existing) return jsonResponse({ error: '号码已存在' }, 400);
+        await DB.prepare("INSERT INTO phone_pool (phone, status, oid, expire) VALUES (?, 'available', NULL, NULL)")
+          .bind(phone).run();
         return jsonResponse({ success: true });
       }
 
       case 'removePhone': {
         const phone = url.searchParams.get('phone');
         if (!phone) return jsonResponse({ error: '缺少 phone 参数' }, 400);
-        let pool = await getPool();
-        pool = pool.filter(p => p.phone !== phone);
-        await savePool(pool);
+        await DB.prepare('DELETE FROM phone_pool WHERE phone = ?').bind(phone).run();
         return jsonResponse({ success: true });
       }
 
       case 'resetPool': {
-        const pool = await getPool();
-        for (const p of pool) {
-          if (p.status === 'in_use' && p.oid) {
-            const order = await kv.get(p.oid, { type: 'json' });
+        const { results } = await DB.prepare("SELECT phone, oid FROM phone_pool WHERE status = 'in_use'").all();
+        const stmts = [];
+        for (const row of results) {
+          if (row.oid) {
+            const order = await getOrder(row.oid);
             if (order && order.status === 'active') {
-              order.status = 'released'; order.phone = null; order.expire = null;
-              await kv.put(p.oid, JSON.stringify(order), {
-                metadata: { createdAt: order.createdAt || 0, status: 'released' }
-              });
-              await removeFromActiveIndex(p.oid);
+              stmts.push(DB.prepare("UPDATE orders SET status = 'released', phone = NULL, expire = NULL WHERE oid = ?").bind(row.oid));
+              stmts.push(DB.prepare('DELETE FROM active_orders WHERE oid = ?').bind(row.oid));
             }
-            p.status = 'available'; p.oid = null; p.expire = null;
           }
+          stmts.push(DB.prepare("UPDATE phone_pool SET status = 'available', oid = NULL, expire = NULL WHERE phone = ?").bind(row.phone));
         }
-        await savePool(pool);
+        // 分批执行，避免单次 batch 语句过多
+        for (let i = 0; i < stmts.length; i += 100) {
+          await DB.batch(stmts.slice(i, i + 100));
+        }
         return jsonResponse({ success: true });
       }
 
       case 'releasePoolPhone': {
         const phone = url.searchParams.get('phone');
         if (!phone) return jsonResponse({ error: '缺少 phone 参数' }, 400);
-        const pool = await getPool();
-        const entry = pool.find(p => p.phone === phone);
+        const entry = await DB.prepare('SELECT * FROM phone_pool WHERE phone = ?').bind(phone).first();
         if (!entry) return jsonResponse({ error: '号码不在池中' }, 404);
         if (entry.status !== 'in_use') return jsonResponse({ error: '该号码未被占用' }, 400);
+        const stmts = [];
         if (entry.oid) {
-          const order = await kv.get(entry.oid, { type: 'json' });
+          const order = await getOrder(entry.oid);
           if (order && order.status === 'active') {
-            order.status = 'released'; order.phone = null; order.expire = null;
-            await kv.put(entry.oid, JSON.stringify(order), {
-              metadata: { createdAt: order.createdAt || 0, status: 'released' }
-            });
-            await removeFromActiveIndex(entry.oid);
+            stmts.push(DB.prepare("UPDATE orders SET status = 'released', phone = NULL, expire = NULL WHERE oid = ?").bind(entry.oid));
+            stmts.push(DB.prepare('DELETE FROM active_orders WHERE oid = ?').bind(entry.oid));
           }
         }
-        entry.status = 'available'; entry.oid = null; entry.expire = null;
-        await savePool(pool);
+        stmts.push(DB.prepare("UPDATE phone_pool SET status = 'available', oid = NULL, expire = NULL WHERE phone = ?").bind(phone));
+        await DB.batch(stmts);
         return jsonResponse({ success: true });
       }
 
       case 'logList': {
-        const logs = await getLogs();
-        return jsonResponse({ logs: logs.reverse() });
+        const { results } = await DB.prepare(
+          'SELECT phone, oid, action, time FROM phone_logs ORDER BY id DESC LIMIT 100'
+        ).all();
+        return jsonResponse({ logs: results });
       }
 
       case 'status': {
-        const order = await kv.get(oid, { type: 'json' });
+        const order = await getOrder(oid);
         if (!order) return jsonResponse({ status: 'invalid', phone: null, expire: null, code: null });
         if (order.expire && order.status === 'active' && Date.now() >= order.expire) {
           await releaseOrderPhone(order, oid);
-          order.status = 'expired'; order.phone = null; order.expire = null;
-          await kv.put(oid, JSON.stringify(order), {
-            metadata: { createdAt: order.createdAt || 0, status: 'expired' }
-          });
+          await DB.prepare(
+            "UPDATE orders SET status = 'expired', phone = NULL, expire = NULL WHERE oid = ?"
+          ).bind(oid).run();
           return jsonResponse({ status: 'expired', phone: null, expire: null, code: null });
         }
         return jsonResponse(order);
       }
 
       case 'getPhone': {
-        let order = await kv.get(oid, { type: 'json' });
+        let order = await getOrder(oid);
         if (!order) return jsonResponse({ error: '订单不存在或已失效' }, 404);
         if (order.status === 'done') return jsonResponse({ error: '订单已完成' }, 403);
         if (order.status === 'released') return jsonResponse({ error: '订单已被管理员释放' }, 403);
 
         if (order.status === 'expired') {
           order.status = 'new'; order.phone = null; order.expire = null; order.code = null; order.fromPool = false;
-          await kv.put(oid, JSON.stringify(order), {
-            metadata: { createdAt: order.createdAt || 0, status: 'new' }
-          });
+          await saveOrder(oid, order);
         }
 
         if (order.status === 'active' && order.expire && Date.now() < order.expire) {
@@ -643,18 +629,13 @@ export async function onRequest(context) {
         if (order.status === 'active' && order.expire && Date.now() >= order.expire) {
           await releaseOrderPhone(order, oid);
           order.status = 'new'; order.phone = null; order.expire = null; order.code = null; order.fromPool = false;
-          await kv.put(oid, JSON.stringify(order), {
-            metadata: { createdAt: order.createdAt || 0, status: 'new' }
-          });
+          await saveOrder(oid, order);
         }
 
         if (order.phone && order.fromPool) {
-          const pool = await getPool();
-          const entry = pool.find(p => p.phone === order.phone);
-          if (entry && entry.status === 'in_use') {
-            entry.status = 'available'; entry.oid = null; entry.expire = null;
-            await savePool(pool);
-          }
+          await DB.prepare(
+            "UPDATE phone_pool SET status = 'available', oid = NULL, expire = NULL WHERE phone = ? AND status = 'in_use'"
+          ).bind(order.phone).run();
         }
 
         const tokenStr = await getValidToken();
@@ -672,41 +653,41 @@ export async function onRequest(context) {
             order.code = null;
             order.fromPool = false;
             order.phoneAssignedAt = Date.now();
-            await kv.put(oid, JSON.stringify(order), {
-              metadata: { createdAt: order.createdAt || 0, status: 'active' }
-            });
+            await saveOrder(oid, order);
             await updateActiveIndex(oid, realPhone, order.expire);
             return jsonResponse({ phone: realPhone, expire: order.expire });
           }
           return jsonResponse({ error: '获取指定手机号失败：' + (phoneData.msg || '平台无该号或已被占用') }, 400);
         }
 
-        const pool = await getPool();
-        const available = pool.filter(p => p.status === 'available');
-        if (available.length > 0) {
-          const chosen = available[Math.floor(Math.random() * available.length)];
-          const phone = chosen.phone;
-          const expire = Date.now() + PHONE_TTL_MS;
+        // 原子占用池中号码，避免并发下多个订单抢到同一号码
+        const expire = Date.now() + PHONE_TTL_MS;
+        const pickedRes = await DB.prepare(`
+          UPDATE phone_pool SET status = 'in_use', oid = ?, expire = ?
+          WHERE phone = (SELECT phone FROM phone_pool WHERE status = 'available' ORDER BY RANDOM() LIMIT 1)
+          RETURNING phone
+        `).bind(oid, expire).all();
 
+        const picked = pickedRes.results && pickedRes.results[0];
+        if (picked) {
+          const phone = picked.phone;
           try {
             const activateUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${orderSid}&phone=${phone}`;
             await fetchWithTimeout(activateUrl);
           } catch (e) {}
 
-          chosen.status = 'in_use'; chosen.oid = oid; chosen.expire = expire;
-          await savePool(pool);
-
-          const newOrder = {
-            ...order, phone, expire, status: 'active', code: null, fromPool: true,
-            phoneAssignedAt: Date.now()
-          };
-          await kv.put(oid, JSON.stringify(newOrder), {
-            metadata: { createdAt: newOrder.createdAt || 0, status: 'active' }
-          });
+          order.phone = phone;
+          order.expire = expire;
+          order.status = 'active';
+          order.code = null;
+          order.fromPool = true;
+          order.phoneAssignedAt = Date.now();
+          await saveOrder(oid, order);
           await updateActiveIndex(oid, phone, expire);
           return jsonResponse({ phone, expire });
         }
 
+        // 池中无可用号码，走平台取号
         const f = order.filters || {};
         let apiUrl = `https://${HAOZHU.server}/sms/?api=getPhone&token=${tokenStr}&sid=${orderSid}`;
         if (f.ascription) apiUrl += `&ascription=${encodeURIComponent(f.ascription)}`;
@@ -720,44 +701,41 @@ export async function onRequest(context) {
         const phoneData = await phoneResp.json();
         if (phoneData.code == 0) {
           const phone = phoneData.phone || phoneData.Phone || phoneData.mobile;
-          const newOrder = {
-            ...order, phone, expire: Date.now() + PHONE_TTL_MS,
-            status: 'active', code: null, fromPool: false,
-            phoneAssignedAt: Date.now()
-          };
-          await kv.put(oid, JSON.stringify(newOrder), {
-            metadata: { createdAt: newOrder.createdAt || 0, status: 'active' }
-          });
-          await updateActiveIndex(oid, phone, newOrder.expire);
-          return jsonResponse({ phone, expire: newOrder.expire });
+          order.phone = phone;
+          order.expire = Date.now() + PHONE_TTL_MS;
+          order.status = 'active';
+          order.code = null;
+          order.fromPool = false;
+          order.phoneAssignedAt = Date.now();
+          await saveOrder(oid, order);
+          await updateActiveIndex(oid, phone, order.expire);
+          return jsonResponse({ phone, expire: order.expire });
         }
         return jsonResponse({ error: phoneData.msg || '取号失败' }, 500);
       }
 
       case 'release': {
-        const order = await kv.get(oid, { type: 'json' });
+        const order = await getOrder(oid);
         if (!order) return jsonResponse({ error: '订单不存在' }, 404);
         if (order.status === 'done') return jsonResponse({ error: '订单已完成' }, 403);
 
         await releaseOrderPhone(order, oid);
 
-        order.status = 'new'; order.phone = null; order.expire = null; order.code = null; order.fromPool = false;
-        await kv.put(oid, JSON.stringify(order), {
-          metadata: { createdAt: order.createdAt || 0, status: 'new' }
-        });
+        await DB.prepare(
+          "UPDATE orders SET status = 'new', phone = NULL, expire = NULL, code = NULL, from_pool = 0 WHERE oid = ?"
+        ).bind(oid).run();
         return jsonResponse({ success: true });
       }
 
       case 'getSMS': {
-        const order = await kv.get(oid, { type: 'json' });
+        const order = await getOrder(oid);
         if (!order) return jsonResponse({ error: '订单不存在' }, 404);
 
         if (order.status === 'active' && order.expire && Date.now() >= order.expire) {
           await releaseOrderPhone(order, oid);
-          order.status = 'expired'; order.phone = null; order.expire = null;
-          await kv.put(oid, JSON.stringify(order), {
-            metadata: { createdAt: order.createdAt || 0, status: 'expired' }
-          });
+          await DB.prepare(
+            "UPDATE orders SET status = 'expired', phone = NULL, expire = NULL WHERE oid = ?"
+          ).bind(oid).run();
           return jsonResponse({ status: 'expired', code: null });
         }
 
@@ -774,19 +752,12 @@ export async function onRequest(context) {
           if (raw) {
             const match = raw.match(/(?<!\d)(\d{4,6})(?!\d)/);
             if (match) {
-              order.code = match[1]; order.status = 'done'; order.doneTime = Date.now();
-              await kv.put(oid, JSON.stringify(order), {
-                metadata: { createdAt: order.createdAt || 0, status: 'done' }
-              });
-              await removeFromActiveIndex(oid);
+              await DB.batch([
+                DB.prepare("UPDATE orders SET code = ?, status = 'done', done_time = ? WHERE oid = ?")
+                  .bind(match[1], Date.now(), oid),
+                DB.prepare('DELETE FROM active_orders WHERE oid = ?').bind(oid)
+              ]);
               await addLog(order.phone, oid, 'sms_received');
-
-              try {
-                await pushToOrderIndex(oid, order.createdAt || Date.now());
-              } catch (e) {
-                console.error('加入订单索引失败:', e);
-              }
-
               return jsonResponse({ code: match[1], status: 'done' });
             }
           }
@@ -797,10 +768,15 @@ export async function onRequest(context) {
       case 'setPhone': {
         const phone = url.searchParams.get('phone');
         if (!phone) return jsonResponse({ error: '缺少 phone 参数' }, 400);
-        const order = { phone, expire: 0, status: 'pending', code: null, fromPool: false, createdAt: Date.now() };
-        await kv.put(oid, JSON.stringify(order), {
-          metadata: { createdAt: order.createdAt, status: 'pending' }
-        });
+        const order = {
+          phone,
+          expire: 0,
+          status: 'pending',
+          code: null,
+          fromPool: false,
+          createdAt: Date.now()
+        };
+        await saveOrder(oid, order);
         return jsonResponse({ success: true });
       }
 
