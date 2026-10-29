@@ -357,6 +357,38 @@
             font-weight: 600;
         }
 
+        /* ===== 新增：教程内口令展示区 ===== */
+        .tutorial-codes-box {
+            margin-top: 14px;
+            padding: 14px 16px;
+            background: rgba(0, 122, 255, 0.05);
+            border: 1.5px dashed rgba(0, 122, 255, 0.4);
+            border-radius: var(--radius-xs);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tutorial-code-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .tutorial-code-val {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            color: var(--primary);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: #fff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 122, 255, 0.2);
+            user-select: all;
+        }
+
         .tutorial-tip {
             margin-top: 24px;
             padding: 14px 16px;
@@ -712,6 +744,18 @@
                 <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYWzgTWNZbr763i3fBJ.png" alt="步骤4：登录成功" loading="lazy">
                 <div class="tutorial-step-desc">
                     全部一次激活，不要只激活一个，囤货过期不售后，<strong>有任何问题，拍视频留言，不要扯皮，后台都可以看记录
+                </div>
+                
+                <!-- 新增：口令展示区（按两行分开） -->
+                <div class="tutorial-codes-box">
+                    <div class="tutorial-code-item">
+                        <span>口令1：</span>
+                        <span class="tutorial-code-val">xunyou456</span>
+                    </div>
+                    <div class="tutorial-code-item">
+                        <span>口令2：</span>
+                        <span class="tutorial-code-val">TE727DUH</span>
+                    </div>
                 </div>
             </div>
 
