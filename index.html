@@ -368,6 +368,15 @@
             flex-direction: column;
             gap: 10px;
         }
+        /* 新增：口令框上方提示 */
+        .tutorial-codes-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--danger);
+            text-align: center;
+            line-height: 1.5;
+            padding-bottom: 2px;
+        }
         .tutorial-code-item {
             display: flex;
             align-items: center;
@@ -783,6 +792,7 @@
                 
                 <!-- 新增：口令点击复制区 -->
                 <div class="tutorial-codes-box">
+                    <div class="tutorial-codes-title">⚠️ 按顺序依次兑换口令，并且全部激活不要囤货！</div>
                     <div class="tutorial-code-item" onclick="copyTutorialCode('xunyou456', this)">
                         <div class="code-left">
                             <span class="code-label">口令1</span>
