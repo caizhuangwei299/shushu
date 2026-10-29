@@ -357,7 +357,7 @@
             font-weight: 600;
         }
 
-        /* ===== 新增：教程内口令展示区 ===== */
+        /* ===== 教程内口令展示区（可点击复制） ===== */
         .tutorial-codes-box {
             margin-top: 14px;
             padding: 14px 16px;
@@ -372,9 +372,47 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 15px;
-            font-weight: 600;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid rgba(0, 122, 255, 0.2);
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            transition: all var(--transition);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tutorial-code-item:hover {
+            border-color: var(--primary);
+            background: rgba(0, 122, 255, 0.04);
+        }
+        .tutorial-code-item:active {
+            transform: scale(0.98);
+        }
+        .tutorial-code-item.copied {
+            border-color: var(--success);
+            background: rgba(52, 199, 89, 0.06);
+        }
+        .code-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .code-label {
+            font-size: 14px;
+            font-weight: 700;
             color: var(--text-primary);
+            white-space: nowrap;
+        }
+        .code-hint {
+            font-size: 11px;
+            font-weight: 500;
+            color: #FF9500;
+            white-space: nowrap;
+        }
+        .tutorial-code-item.copied .code-hint {
+            color: var(--success);
+            font-weight: 700;
         }
         .tutorial-code-val {
             font-family: 'SF Mono', 'Consolas', monospace;
@@ -382,11 +420,8 @@
             font-size: 16px;
             font-weight: 700;
             letter-spacing: 1px;
-            background: #fff;
-            padding: 4px 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(0, 122, 255, 0.2);
-            user-select: all;
+            flex-shrink: 0;
+            margin-left: 8px;
         }
 
         .tutorial-tip {
@@ -746,14 +781,20 @@
                     全部一次激活，不要只激活一个，囤货过期不售后，<strong>有任何问题，拍视频留言，不要扯皮，后台都可以看记录
                 </div>
                 
-                <!-- 新增：口令展示区（按两行分开） -->
+                <!-- 新增：口令点击复制区 -->
                 <div class="tutorial-codes-box">
-                    <div class="tutorial-code-item">
-                        <span>口令1：</span>
+                    <div class="tutorial-code-item" onclick="copyTutorialCode('xunyou456', this)">
+                        <div class="code-left">
+                            <span class="code-label">口令1</span>
+                            <span class="code-hint">点击复制口令</span>
+                        </div>
                         <span class="tutorial-code-val">xunyou456</span>
                     </div>
-                    <div class="tutorial-code-item">
-                        <span>口令2：</span>
+                    <div class="tutorial-code-item" onclick="copyTutorialCode('TE727DUH', this)">
+                        <div class="code-left">
+                            <span class="code-label">口令2</span>
+                            <span class="code-hint">点击复制口令</span>
+                        </div>
                         <span class="tutorial-code-val">TE727DUH</span>
                     </div>
                 </div>
@@ -873,6 +914,33 @@
                     }).catch(() => fallbackCopy(text, btn));
                 } else {
                     fallbackCopy(text, btn);
+                }
+            };
+
+            // ===== 教程内口令点击复制 =====
+            window.copyTutorialCode = function(text, el) {
+                if (!text) return;
+                const hint = el.querySelector('.code-hint');
+                const onSuccess = () => {
+                    el.classList.add('copied');
+                    if (hint) {
+                        const original = hint.textContent;
+                        hint.textContent = '✓ 已复制';
+                        setTimeout(() => {
+                            el.classList.remove('copied');
+                            hint.textContent = original;
+                        }, 1200);
+                    }
+                };
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+                        fallbackCopy(text, null);
+                        onSuccess();
+                    });
+                } else {
+                    fallbackCopy(text, null);
+                    onSuccess();
                 }
             };
 
