@@ -357,7 +357,7 @@
             font-weight: 600;
         }
 
-        /* ===== 教程内口令展示区（可点击复制） ===== */
+        /* ===== 教程内口令展示区 ===== */
         .tutorial-codes-box {
             margin-top: 14px;
             padding: 14px 16px;
@@ -368,60 +368,13 @@
             flex-direction: column;
             gap: 10px;
         }
-        /* 新增：口令框上方提示 */
-        .tutorial-codes-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--danger);
-            text-align: center;
-            line-height: 1.5;
-            padding-bottom: 2px;
-        }
         .tutorial-code-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 12px;
-            background: #fff;
-            border: 1px solid rgba(0, 122, 255, 0.2);
-            border-radius: var(--radius-xs);
-            cursor: pointer;
-            transition: all var(--transition);
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .tutorial-code-item:hover {
-            border-color: var(--primary);
-            background: rgba(0, 122, 255, 0.04);
-        }
-        .tutorial-code-item:active {
-            transform: scale(0.98);
-        }
-        .tutorial-code-item.copied {
-            border-color: var(--success);
-            background: rgba(52, 199, 89, 0.06);
-        }
-        .code-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
-        }
-        .code-label {
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 600;
             color: var(--text-primary);
-            white-space: nowrap;
-        }
-        .code-hint {
-            font-size: 11px;
-            font-weight: 500;
-            color: #FF9500;
-            white-space: nowrap;
-        }
-        .tutorial-code-item.copied .code-hint {
-            color: var(--success);
-            font-weight: 700;
         }
         .tutorial-code-val {
             font-family: 'SF Mono', 'Consolas', monospace;
@@ -429,8 +382,11 @@
             font-size: 16px;
             font-weight: 700;
             letter-spacing: 1px;
-            flex-shrink: 0;
-            margin-left: 8px;
+            background: #fff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 122, 255, 0.2);
+            user-select: all;
         }
 
         .tutorial-tip {
@@ -579,6 +535,112 @@
             text-align: center;
         }
 
+        /* ===== 收到验证码弹窗 ===== */
+        .code-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            overflow-y: auto;
+        }
+        .code-modal {
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            padding: 26px 18px 22px;
+            text-align: center;
+            animation: modalIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .code-modal::-webkit-scrollbar { width: 4px; }
+        .code-modal::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+        .code-modal-icon { font-size: 42px; line-height: 1; margin-bottom: 6px; }
+        .code-modal-title { font-size: 21px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+        .code-modal-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; margin-bottom: 18px; }
+
+        .cm-grid { display: flex; gap: 10px; margin-bottom: 16px; }
+        .cm-box {
+            flex: 1;
+            min-width: 0;
+            background: rgba(242, 242, 247, 0.9);
+            border-radius: var(--radius-xs);
+            padding: 12px 8px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .cm-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; margin-bottom: 6px; }
+        .cm-value {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+            user-select: all;
+            word-break: break-all;
+            margin-bottom: 9px;
+            line-height: 1.3;
+        }
+        .cm-value.cm-code-val {
+            color: var(--primary);
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 22px;
+            letter-spacing: 2px;
+        }
+        .cm-copy-btn {
+            width: 100%;
+            border: none;
+            border-radius: 999px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 8px 6px;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all var(--transition);
+        }
+        .cm-copy-btn:hover { background: var(--primary-hover); }
+        .cm-copy-btn:active { transform: scale(0.96); }
+        .cm-copy-btn.copied { background: var(--success); }
+
+        .codes-wrap {
+            background: rgba(0, 122, 255, 0.04);
+            border: 1.5px dashed rgba(0, 122, 255, 0.35);
+            border-radius: var(--radius-xs);
+            padding: 12px 12px 6px;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .codes-wrap-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .code-warning {
+            background: rgba(255, 59, 48, 0.08);
+            border: 1.5px solid rgba(255, 59, 48, 0.3);
+            border-radius: var(--radius-xs);
+            padding: 13px 14px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--danger);
+            line-height: 1.65;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
+
         @media (max-width: 480px) {
             .tutorial-modal { padding: 24px 16px 28px; max-height: 95vh; border-radius: 20px; }
             .tutorial-title { font-size: 20px; }
@@ -589,6 +651,11 @@
             .tutorial-banner .tb-icon { font-size: 23px; }
             .compact-phone { font-size: 15px; }
             .compact-code { font-size: 18px; letter-spacing: 1.5px; }
+            .code-modal { padding: 22px 14px 18px; max-height: 95vh; border-radius: 20px; }
+            .code-modal-title { font-size: 19px; }
+            .cm-value { font-size: 15px; }
+            .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
+            .code-warning { font-size: 12.5px; padding: 11px 10px; }
         }
     </style>
 </head>
@@ -787,24 +854,17 @@
                 </div>
                 <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYWzgTWNZbr763i3fBJ.png" alt="步骤4：登录成功" loading="lazy">
                 <div class="tutorial-step-desc">
-                    全部一次激活，不要只激活一个，囤货过期不售后，<strong>有任何问题，拍视频留言，不要扯皮，后台都可以看记录
+                    全部一次激活，不要只激活一个，囤货过期不售后，<strong>有任何问题，拍视频留言，不要扯皮，后台都可以看记录</strong>
                 </div>
                 
-                <!-- 新增：口令点击复制区 -->
+                <!-- 新增：口令展示区（按两行分开） -->
                 <div class="tutorial-codes-box">
-                    <div class="tutorial-codes-title">⚠️ 按顺序依次兑换口令，并且全部激活不要囤货！</div>
-                    <div class="tutorial-code-item" onclick="copyTutorialCode('xunyou456', this)">
-                        <div class="code-left">
-                            <span class="code-label">口令1</span>
-                            <span class="code-hint">点击复制口令</span>
-                        </div>
+                    <div class="tutorial-code-item">
+                        <span>口令1：</span>
                         <span class="tutorial-code-val">xunyou456</span>
                     </div>
-                    <div class="tutorial-code-item" onclick="copyTutorialCode('TE727DUH', this)">
-                        <div class="code-left">
-                            <span class="code-label">口令2</span>
-                            <span class="code-hint">点击复制口令</span>
-                        </div>
+                    <div class="tutorial-code-item">
+                        <span>口令2：</span>
                         <span class="tutorial-code-val">TE727DUH</span>
                     </div>
                 </div>
@@ -817,6 +877,52 @@
             <button class="btn btn-primary tutorial-footer-btn" onclick="closeTutorial()">
                 我知道了
             </button>
+        </div>
+    </div>
+
+    <!-- ===== 收到验证码弹窗 ===== -->
+    <div class="code-overlay hidden" id="codeOverlay">
+        <div class="code-modal">
+            <div class="code-modal-icon">🎉</div>
+            <div class="code-modal-title">验证码已收到</div>
+            <div class="code-modal-sub">请立即复制以下信息完成登录</div>
+
+            <!-- 手机号 / 验证码 -->
+            <div class="cm-grid">
+                <div class="cm-box">
+                    <div class="cm-label">手机号</div>
+                    <div class="cm-value" id="cmPhone">---</div>
+                    <button class="cm-copy-btn" onclick="copyModalPhone(this)">复制手机号</button>
+                </div>
+                <div class="cm-box">
+                    <div class="cm-label">验证码</div>
+                    <div class="cm-value cm-code-val" id="cmCode">---</div>
+                    <button class="cm-copy-btn" onclick="copyModalCode(this)">复制验证码</button>
+                </div>
+            </div>
+
+            <!-- 口令 -->
+            <div class="codes-wrap">
+                <div class="codes-wrap-title">🔑 登录后兑换以下口令（按顺序全部兑换）</div>
+                <div class="code-item">
+                    <span class="code-item-label">口令1</span>
+                    <span class="code-item-value">xunyou456</span>
+                    <button class="code-copy-btn" onclick="copyText('xunyou456', this)">复制</button>
+                </div>
+                <div class="code-item">
+                    <span class="code-item-label">口令2</span>
+                    <span class="code-item-value">TE727DUH</span>
+                    <button class="code-copy-btn" onclick="copyText('TE727DUH', this)">复制</button>
+                </div>
+            </div>
+
+            <!-- 警告提示 -->
+            <div class="code-warning">
+                <span class="cw-icon">⚠️</span>
+                按顺序兑换以下口令并且全部激活，<br>囤货以及不按顺序兑换不售后！
+            </div>
+
+            <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
         </div>
     </div>
 
@@ -840,6 +946,7 @@
             let isOrderExpired = false;
             let pureCode = '';
             let pollAttempts = 0;
+            let hasShownCodeModal = false;
 
             const noOrderView = document.getElementById('noOrderView');
             const orderView = document.getElementById('orderView');
@@ -881,14 +988,57 @@
                 }
             });
 
+            // ===== 收到验证码弹窗 =====
+            const codeOverlay = document.getElementById('codeOverlay');
+            const cmPhone = document.getElementById('cmPhone');
+            const cmCode = document.getElementById('cmCode');
+
+            function showCodeModal(phone, code) {
+                if (hasShownCodeModal) return;
+                hasShownCodeModal = true;
+
+                cmPhone.textContent = phone || currentPhone || '---';
+                cmCode.textContent = code || '---';
+
+                codeOverlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            window.closeCodeModal = function() {
+                codeOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            };
+
+            codeOverlay.addEventListener('click', function(e) {
+                if (e.target === codeOverlay) {
+                    closeCodeModal();
+                }
+            });
+
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && !tutorialOverlay.classList.contains('hidden')) {
+                if (e.key !== 'Escape') return;
+                if (!codeOverlay.classList.contains('hidden')) {
+                    closeCodeModal();
+                    return;
+                }
+                if (!tutorialOverlay.classList.contains('hidden')) {
                     closeTutorial();
                 }
             });
 
             // ===== 复制工具函数 =====
-            function fallbackCopy(text, btn) {
+            function markCopied(btn, label) {
+                if (!btn) { alert('已复制'); return; }
+                const orig = label || '复制';
+                btn.classList.add('copied');
+                btn.textContent = '已复制 ✓';
+                setTimeout(function() {
+                    btn.classList.remove('copied');
+                    btn.textContent = orig;
+                }, 1500);
+            }
+
+            function fallbackCopy(text, btn, label) {
                 const ta = document.createElement('textarea');
                 ta.value = text;
                 ta.style.position = 'fixed';
@@ -897,64 +1047,40 @@
                 ta.select();
                 try {
                     document.execCommand('copy');
-                    if (btn) {
-                        btn.classList.add('copied');
-                        btn.textContent = '已复制 ✓';
-                        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '复制'; }, 1500);
-                    } else {
-                        alert('已复制');
-                    }
+                    markCopied(btn, label);
                 } catch (err) {
                     alert('复制失败，请手动复制');
                 }
                 document.body.removeChild(ta);
             }
 
-            window.copyText = function(text, btn) {
+            window.copyText = function(text, btn, label) {
                 if (!text) return;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        if (btn) {
-                            btn.classList.add('copied');
-                            btn.textContent = '已复制 ✓';
-                            setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '复制'; }, 1500);
-                        } else {
-                            alert('已复制');
-                        }
-                    }).catch(() => fallbackCopy(text, btn));
-                } else {
-                    fallbackCopy(text, btn);
-                }
-            };
-
-            // ===== 教程内口令点击复制 =====
-            window.copyTutorialCode = function(text, el) {
-                if (!text) return;
-                const hint = el.querySelector('.code-hint');
-                const onSuccess = () => {
-                    el.classList.add('copied');
-                    if (hint) {
-                        const original = hint.textContent;
-                        hint.textContent = '✓ 已复制';
-                        setTimeout(() => {
-                            el.classList.remove('copied');
-                            hint.textContent = original;
-                        }, 1200);
-                    }
-                };
-
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
-                        fallbackCopy(text, null);
-                        onSuccess();
+                    navigator.clipboard.writeText(text).then(function() {
+                        markCopied(btn, label);
+                    }).catch(function() {
+                        fallbackCopy(text, btn, label);
                     });
                 } else {
-                    fallbackCopy(text, null);
-                    onSuccess();
+                    fallbackCopy(text, btn, label);
                 }
             };
 
-            // ===== 以下原有逻辑保持不变 =====
+            // 弹窗内复制按钮
+            window.copyModalPhone = function(btn) {
+                const phone = cmPhone.textContent.trim();
+                if (!phone || phone === '---') return;
+                copyText(phone, btn, '复制手机号');
+            };
+
+            window.copyModalCode = function(btn) {
+                const code = cmCode.textContent.trim();
+                if (!code || code === '---') return;
+                copyText(code, btn, '复制验证码');
+            };
+
+            // ===== 原有逻辑 =====
             function showUI(state) {
                 initBox.classList.add('hidden');
                 phoneBox.classList.add('hidden');
@@ -1052,6 +1178,9 @@
                 codeDisplay.textContent = code;
                 showUI('done');
                 setStatus('验证码已收到', 'success');
+
+                // ★ 弹出“已收到验证码”卡片
+                showCodeModal(phone || currentPhone, code);
             }
 
             function handleExpired() {
