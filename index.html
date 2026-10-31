@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #e8f0fe 0%, #fde8f0 50%, #e2f0ff 100%);
-            --card-bg: rgba(255, 255, 255, 0.65);
+            --card-bg: rgba(255, 255, 255, 0.75);
             --card-border: 1px solid rgba(255, 255, 255, 0.8);
             --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.02);
             --primary: #007AFF;
@@ -132,7 +132,7 @@
         .btn-copy:hover { border-color: var(--primary); background: rgba(0, 122, 255, 0.04); }
 
         .info-card {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.6);
             border-radius: var(--radius-sm);
             padding: 20px 16px;
             margin: 16px 0;
@@ -178,23 +178,6 @@
         .locked-banner .title { font-size: 20px; font-weight: 700; color: var(--danger); }
         .done-banner .title { font-size: 20px; font-weight: 700; color: var(--success); }
         .locked-banner .desc, .done-banner .desc { color: var(--text-secondary); font-size: 14px; margin-top: 6px; }
-
-        .contact-footer {
-            margin-top: 24px;
-            padding: 14px 16px;
-            background: rgba(0, 122, 255, 0.08);
-            border: 1.5px dashed rgba(0, 122, 255, 0.3);
-            border-radius: var(--radius-sm);
-            text-align: center;
-            color: var(--primary);
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: 0.4px;
-            cursor: pointer;
-            user-select: all;
-            transition: all var(--transition);
-        }
-        .contact-footer:hover { background: rgba(0, 122, 255, 0.12); }
 
         /* ===== 置顶教程大按钮 ===== */
         .tutorial-banner {
@@ -641,43 +624,31 @@
         }
         .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
-        /* ===== 获取验证码页面底部联系方式 ===== */
-        .contact-us {
-            margin-top: 22px;
-            padding-top: 16px;
-            border-top: 1px dashed var(--separator);
+        /* ===== 卡片内部：底部制作同款联系方式 ===== */
+        .script-ad-card {
+            margin-top: 28px;
+            padding: 18px 16px;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(255, 149, 0, 0.12));
+            border: 2px dashed rgba(255, 149, 0, 0.6);
+            border-radius: var(--radius-sm);
             text-align: center;
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--text-quaternary);
-            letter-spacing: 0.2px;
             user-select: all;
+            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.08);
         }
-        .contact-us .contact-v {
+        .script-ad-card .ad-label {
+            font-size: 15px;
             color: var(--text-secondary);
-            font-weight: 700;
-            font-family: 'SF Mono', 'Consolas', monospace;
-            letter-spacing: 0.5px;
-        }
-
-        /* ===== 全局底部联系方式 ===== */
-        .global-footer {
-            width: 100%;
-            max-width: 420px;
-            margin: 20px 0 4px;
-            text-align: center;
-            font-size: 13px;
-            line-height: 1.7;
-            color: var(--text-quaternary);
+            font-weight: 600;
+            margin-bottom: 6px;
             letter-spacing: 0.3px;
-            user-select: all;
-            padding: 0 8px;
         }
-        .global-footer .contact-v {
-            color: var(--text-secondary);
-            font-weight: 700;
+        .script-ad-card .ad-v {
+            font-size: 24px;
+            color: var(--danger);
+            font-weight: 800;
             font-family: 'SF Mono', 'Consolas', monospace;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.5px;
+            text-shadow: 0 1px 2px rgba(255, 59, 48, 0.1);
         }
 
         @media (max-width: 480px) {
@@ -695,8 +666,9 @@
             .cm-value { font-size: 15px; }
             .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
-            .contact-us { font-size: 12.5px; }
-            .global-footer { font-size: 12.5px; }
+            .script-ad-card { padding: 16px 12px; margin-top: 24px; }
+            .script-ad-card .ad-label { font-size: 14px; }
+            .script-ad-card .ad-v { font-size: 22px; }
         }
     </style>
 </head>
@@ -783,11 +755,6 @@
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
                     释放手机号，重新获取（180秒后可操作）
                 </button>
-
-                <!-- 获取验证码卡片底部联系方式 -->
-                <div class="contact-us">
-                    制作同款网页脚本可联系V：<span class="contact-v">1113630283</span>
-                </div>
             </div>
 
             <div id="timeoutBox" class="hidden">
@@ -846,11 +813,12 @@
                 <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">🔄 重试</button>
             </div>
         </div>
-    </div>
-
-    <!-- ===== 全局底部联系方式 ===== -->
-    <div class="global-footer">
-        制作同款网页脚本可联系V：<span class="contact-v">1113630283</span>
+        
+        <!-- ===== 卡片内部：制作同款联系方式 ===== -->
+        <div class="script-ad-card">
+            <div class="ad-label">💡 制作同款网页脚本请联系V：</div>
+            <div class="ad-v">1113630283</div>
+        </div>
     </div>
 
     <!-- ===== 教程弹窗 ===== -->
