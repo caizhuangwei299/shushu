@@ -641,6 +641,45 @@
         }
         .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
+        /* ===== 获取验证码页面底部联系方式 ===== */
+        .contact-us {
+            margin-top: 22px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--separator);
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-quaternary);
+            letter-spacing: 0.2px;
+            user-select: all;
+        }
+        .contact-us .contact-v {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== 全局底部联系方式 ===== */
+        .global-footer {
+            width: 100%;
+            max-width: 420px;
+            margin: 20px 0 4px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-quaternary);
+            letter-spacing: 0.3px;
+            user-select: all;
+            padding: 0 8px;
+        }
+        .global-footer .contact-v {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            letter-spacing: 0.5px;
+        }
+
         @media (max-width: 480px) {
             .tutorial-modal { padding: 24px 16px 28px; max-height: 95vh; border-radius: 20px; }
             .tutorial-title { font-size: 20px; }
@@ -656,6 +695,8 @@
             .cm-value { font-size: 15px; }
             .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
+            .contact-us { font-size: 12.5px; }
+            .global-footer { font-size: 12.5px; }
         }
     </style>
 </head>
@@ -742,6 +783,11 @@
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
                     释放手机号，重新获取（180秒后可操作）
                 </button>
+
+                <!-- 获取验证码卡片底部联系方式 -->
+                <div class="contact-us">
+                    制作同款网页脚本可联系V：<span class="contact-v">1113630283</span>
+                </div>
             </div>
 
             <div id="timeoutBox" class="hidden">
@@ -800,6 +846,11 @@
                 <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">🔄 重试</button>
             </div>
         </div>
+    </div>
+
+    <!-- ===== 全局底部联系方式 ===== -->
+    <div class="global-footer">
+        制作同款网页脚本可联系V：<span class="contact-v">1113630283</span>
     </div>
 
     <!-- ===== 教程弹窗 ===== -->
@@ -918,8 +969,8 @@
 
             <!-- 警告提示 -->
             <div class="code-warning">
-                <span class="cw-icon">⚠️</span>
-                按顺序兑换以下口令并且全部激活，<br>囤货以及不按顺序兑换不售后！
+                <span class="cw-icon"></span>
+                按顺序兑换以上口令并且全部激活，<br>囤货以及不按顺序兑换不售后！
             </div>
 
             <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
