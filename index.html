@@ -70,9 +70,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
         }
-        .header .logo .emoji { font-size: 32px; }
         .header .subtitle { color: var(--text-tertiary); font-size: 15px; margin-top: 4px; font-weight: 400; }
         .header .order-id { font-size: 13px; color: var(--text-quaternary); margin-top: 6px; font-weight: 400; letter-spacing: 0.5px; }
 
@@ -126,7 +124,7 @@
             font-family: var(--font);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
             margin-top: 10px;
         }
         .btn-copy:hover { border-color: var(--primary); background: rgba(0, 122, 255, 0.04); }
@@ -141,7 +139,6 @@
         }
         .info-card .label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; margin-bottom: 8px; }
         .phone-number { font-size: 28px; font-weight: 600; letter-spacing: 2px; color: var(--text-primary); user-select: all; }
-        .code-number { font-size: 36px; font-weight: 700; letter-spacing: 6px; color: var(--primary); padding: 8px 0; user-select: all; font-family: 'SF Mono', 'Consolas', monospace; }
 
         .status-text {
             font-weight: 500;
@@ -161,30 +158,26 @@
         .status-warning { background: rgba(255, 149, 0, 0.1); border: 1px solid rgba(255, 149, 0, 0.2); color: #B25900; }
         .status-error { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.2); color: var(--danger); }
 
-        .countdown { font-size: 18px; font-weight: 600; color: var(--warning); margin-top: 8px; }
         .polling-indicator { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-tertiary); font-size: 14px; margin-top: 16px; }
         .polling-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: pulse 1.5s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
         .poll-count { font-size: 12px; color: var(--text-quaternary); margin-left: 4px; }
 
-        .locked-banner, .done-banner {
+        .locked-banner {
             background: rgba(255, 255, 255, 0.5);
             border-radius: var(--radius-sm);
             padding: 28px 20px;
             margin: 16px 0;
             border: 1px solid rgba(255, 255, 255, 0.9);
         }
-        .locked-banner .icon, .done-banner .icon { font-size: 44px; display: block; margin-bottom: 12px; }
         .locked-banner .title { font-size: 20px; font-weight: 700; color: var(--danger); }
-        .done-banner .title { font-size: 20px; font-weight: 700; color: var(--success); }
-        .locked-banner .desc, .done-banner .desc { color: var(--text-secondary); font-size: 14px; margin-top: 6px; }
+        .locked-banner .desc { color: var(--text-secondary); font-size: 14px; margin-top: 6px; }
 
         /* ===== 置顶教程大按钮 ===== */
         .tutorial-banner {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
             width: 100%;
             padding: 20px 16px;
             margin: 0 0 18px;
@@ -203,8 +196,6 @@
         }
         .tutorial-banner:hover { background: linear-gradient(135deg, rgba(0, 122, 255, 0.24), rgba(0, 122, 255, 0.1)); border-color: var(--primary); }
         .tutorial-banner:active { transform: scale(0.97); }
-        .tutorial-banner .tb-icon { font-size: 26px; flex-shrink: 0; }
-        .tutorial-banner .tb-arrow { font-size: 26px; font-weight: 400; line-height: 1; margin-left: 2px; }
 
         @keyframes tutorialGlow {
             0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.28); }
@@ -547,7 +538,6 @@
         .code-modal::-webkit-scrollbar { width: 4px; }
         .code-modal::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
 
-        .code-modal-icon { font-size: 42px; line-height: 1; margin-bottom: 6px; }
         .code-modal-title { font-size: 21px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
         .code-modal-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; margin-bottom: 18px; }
 
@@ -622,7 +612,6 @@
             text-align: center;
             margin-bottom: 16px;
         }
-        .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
         /* ===== 卡片内部：底部制作同款联系方式 ===== */
         .script-ad-card {
@@ -658,7 +647,6 @@
             .tutorial-step-title { font-size: 15px; }
             .tutorial-step-desc { font-size: 13px; }
             .tutorial-banner { font-size: 19px; padding: 18px 12px; }
-            .tutorial-banner .tb-icon { font-size: 23px; }
             .compact-phone { font-size: 15px; }
             .compact-code { font-size: 18px; letter-spacing: 1.5px; }
             .code-modal { padding: 22px 14px 18px; max-height: 95vh; border-radius: 20px; }
@@ -678,36 +666,33 @@
         <!-- 无订单号 -->
         <div id="noOrderView">
             <div class="header">
-                <div class="logo"><span class="emoji">⚡</span> 自动发货</div>
+                <div class="logo">自动发货</div>
                 <div class="subtitle">游戏加速器会员</div>
             </div>
-            <div class="status-text status-warning" style="margin-top: 20px;">⚠️ 请使用卖家提供的专属链接访问</div>
+            <div class="status-text status-warning" style="margin-top: 20px;">请使用卖家提供的专属链接访问</div>
             <p class="text-tertiary" style="margin-top: 16px;">链接由卖家创建，每个链接仅可使用一次</p>
         </div>
 
         <!-- 有订单号 -->
         <div id="orderView" class="hidden">
             <div class="header">
-                <div class="logo"><span class="emoji">📱</span> 获取验证码</div>
+                <div class="logo">获取验证码</div>
                 <div class="order-id" id="orderIdDisplay"></div>
             </div>
 
             <div id="lockedBox" class="hidden">
                 <div class="locked-banner">
-                    <span class="icon">🔒</span>
                     <div class="title">此链接已失效</div>
                     <div class="desc">该订单已结束或已被管理员释放</div>
                 </div>
-                <button class="btn btn-secondary" onclick="location.reload()">🔄 刷新页面</button>
+                <button class="btn btn-secondary" onclick="location.reload()">刷新页面</button>
             </div>
 
             <div id="statusBox"></div>
 
             <div id="initBox">
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
-                    <span class="tb-icon">📖</span>
                     <span>首次使用请查看登录教程</span>
-                    <span class="tb-arrow">›</span>
                 </div>
 
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
@@ -718,9 +703,7 @@
 
             <div id="phoneBox" class="hidden">
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
-                    <span class="tb-icon">📖</span>
                     <span>首次使用必看登录教程</span>
-                    <span class="tb-arrow">›</span>
                 </div>
 
                 <div class="info-card">
@@ -758,7 +741,7 @@
             </div>
 
             <div id="timeoutBox" class="hidden">
-                <div class="status-text status-warning">⏰ 手机号已过期（180秒未收到验证码）</div>
+                <div class="status-text status-warning">手机号已过期（180秒未收到验证码）</div>
                 <p class="text-tertiary" style="margin-top: 8px;">号码已自动释放，请重新获取新号码</p>
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtnTimeout" style="margin-top: 16px;">重新获取手机号</button>
             </div>
@@ -766,9 +749,7 @@
             <!-- ===== 已完成状态：上半部分紧凑手机号+验证码，下半部分口令兑换 ===== -->
             <div id="doneBox" class="hidden">
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
-                    <span class="tb-icon">📖</span>
                     <span>首次使用必看登录教程</span>
-                    <span class="tb-arrow">›</span>
                 </div>
 
                 <!-- 紧凑：手机号 + 验证码 -->
@@ -784,14 +765,14 @@
                         </div>
                     </div>
                     <div class="compact-copy-row">
-                        <button class="btn-copy" onclick="copyPhone()">📋 复制手机号</button>
-                        <button class="btn-copy" onclick="copyCode()">📋 复制验证码</button>
+                        <button class="btn-copy" onclick="copyPhone()">复制手机号</button>
+                        <button class="btn-copy" onclick="copyCode()">复制验证码</button>
                     </div>
                 </div>
 
                 <!-- 口令兑换区 -->
                 <div class="codes-card">
-                    <div class="codes-header"> 登录后兑换以下口令（按顺序全部兑换）</div>
+                    <div class="codes-header">登录后兑换以下口令（按顺序全部兑换）</div>
                     <div class="code-item">
                         <span class="code-item-label">口令1</span>
                         <span class="code-item-value">xunyou456</span>
@@ -802,21 +783,21 @@
                         <span class="code-item-value">TE727DUH</span>
                         <button class="code-copy-btn" onclick="copyText('TE727DUH', this)">复制</button>
                     </div>
-                    <div class="codes-note"> 口令按顺序全部兑换并且全部激活，不按顺序和囤货不售后</div>
+                    <div class="codes-note">口令按顺序全部兑换并且全部激活，不按顺序和囤货不售后</div>
                 </div>
 
-                <p class="text-tertiary" style="margin-top: 16px; color: var(--danger);">🔒 此订单已完成，链接永久失效。</p>
+                <p class="text-tertiary" style="margin-top: 16px; color: var(--danger);">此订单已完成，链接永久失效。</p>
             </div>
 
             <div id="errorBox" class="hidden">
                 <div class="status-text status-error" id="errorMessage"></div>
-                <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">🔄 重试</button>
+                <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">重试</button>
             </div>
         </div>
         
         <!-- ===== 卡片内部：制作同款联系方式 ===== -->
         <div class="script-ad-card">
-            <div class="ad-label">💡 制作同款网页脚本请联系V：</div>
+            <div class="ad-label">制作同款网页脚本请联系V：</div>
             <div class="ad-v">1113630283</div>
         </div>
     </div>
@@ -826,7 +807,7 @@
         <div class="tutorial-modal">
             <button class="tutorial-close" onclick="closeTutorial()">✕</button>
 
-            <div class="tutorial-title">📖 登录教程</div>
+            <div class="tutorial-title">登录教程</div>
             <div class="tutorial-subtitle">首次使用请按以下步骤操作</div>
 
             <!-- 步骤 1 -->
@@ -890,7 +871,7 @@
             </div>
 
             <div class="tutorial-tip">
-                💡 温馨提示：每个手机号仅可使用一次，退出或者换设备都需要重拍。
+                温馨提示：每个手机号仅可使用一次，退出或者换设备都需要重拍。
             </div>
 
             <button class="btn btn-primary tutorial-footer-btn" onclick="closeTutorial()">
@@ -902,7 +883,6 @@
     <!-- ===== 收到验证码弹窗 ===== -->
     <div class="code-overlay hidden" id="codeOverlay">
         <div class="code-modal">
-            <div class="code-modal-icon">🎉</div>
             <div class="code-modal-title">验证码已收到</div>
             <div class="code-modal-sub">请立即复制以下信息完成登录</div>
 
@@ -922,7 +902,7 @@
 
             <!-- 口令 -->
             <div class="codes-wrap">
-                <div class="codes-wrap-title">🔑 登录后兑换以下口令（按顺序全部兑换）</div>
+                <div class="codes-wrap-title">登录后兑换以下口令（按顺序全部兑换）</div>
                 <div class="code-item">
                     <span class="code-item-label">口令1</span>
                     <span class="code-item-value">xunyou456</span>
@@ -937,7 +917,6 @@
 
             <!-- 警告提示 -->
             <div class="code-warning">
-                <span class="cw-icon"></span>
                 按顺序兑换以上口令并且全部激活，<br>囤货以及不按顺序兑换不售后！
             </div>
 
@@ -950,7 +929,6 @@
             'use strict';
 
             const API_BASE = '/api/order';
-            const TIMEOUT_SEC = 180;
             const POLL_INTERVAL = 4000;
             const MAX_RETRIES = 46;
 
