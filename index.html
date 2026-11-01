@@ -645,7 +645,7 @@
         }
         .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
-        /* ===== 收到验证码弹窗 - 底部联系方式（醒目版） ===== */
+        /* ===== 收到验证码弹窗 - 底部联系方式 ===== */
         .code-contact {
             text-align: center;
             font-size: 14px;
@@ -672,7 +672,7 @@
             background: rgba(0, 122, 255, 0.2);
         }
 
-        /* ===== 获取验证码页面底部联系方式（醒目版） ===== */
+        /* ===== 获取验证码页面底部联系方式 ===== */
         .contact-us {
             margin-top: 22px;
             padding-top: 16px;
@@ -696,34 +696,23 @@
             cursor: pointer;
         }
 
-        /* ===== 全局底部联系方式（醒目版） ===== */
+        /* ===== 全局底部联系方式（已合并到卡片内部） ===== */
         .global-footer {
-            width: 100%;
-            max-width: 420px;
-            margin: 20px 0 4px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--separator);
             text-align: center;
-            font-size: 15px;
-            line-height: 1.7;
-            color: var(--text-primary);
+            font-size: 14px;
+            color: var(--text-secondary);
             letter-spacing: 0.3px;
             user-select: all;
-            padding: 16px 12px;
-            background: rgba(255, 255, 255, 0.65);
-            border: 1.5px dashed rgba(0, 122, 255, 0.4);
-            border-radius: var(--radius-sm);
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.05);
-            transition: all var(--transition);
-        }
-        .global-footer:hover {
-            background: rgba(255, 255, 255, 0.85);
-            border-color: var(--primary);
         }
         .global-footer .contact-v {
             color: var(--primary);
             font-weight: 800;
             font-family: 'SF Mono', 'Consolas', monospace;
             letter-spacing: 0.5px;
-            font-size: 17px;
+            font-size: 16px;
             background: rgba(0, 122, 255, 0.1);
             padding: 4px 10px;
             border-radius: 6px;
@@ -752,7 +741,7 @@
             .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
             .contact-us { font-size: 13px; }
-            .global-footer { font-size: 14px; padding: 12px 8px; }
+            .global-footer { font-size: 13px; }
             .global-footer .contact-v { font-size: 15px; }
         }
     </style>
@@ -841,11 +830,6 @@
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
                     释放手机号，重新获取（180秒后可操作）
                 </button>
-
-                <!-- 获取验证码卡片底部联系方式 -->
-                <div class="contact-us">
-                    遇到问题请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
-                </div>
             </div>
 
             <div id="timeoutBox" class="hidden">
@@ -902,11 +886,11 @@
                 <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">🔄 重试</button>
             </div>
         </div>
-    </div>
 
-    <!-- ===== 全局底部联系方式（醒目版） ===== -->
-    <div class="global-footer">
-        制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
+        <!-- ===== 全局底部联系方式（已合并到主卡片内部） ===== -->
+        <div class="global-footer">
+            制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
+        </div>
     </div>
 
     <!-- ===== 教程弹窗 ===== -->
@@ -1031,7 +1015,7 @@
 
             <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
 
-            <!-- 收到验证码弹窗底部微信号（醒目版） -->
+            <!-- 收到验证码弹窗底部微信号 -->
             <div class="code-contact">
                 遇到问题请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
             </div>
