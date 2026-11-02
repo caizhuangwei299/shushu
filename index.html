@@ -1217,10 +1217,13 @@
                 if (pollingIndicator) { pollingIndicator.style.display = 'none'; }
             }
 
+            // ★ 修复：增加 if (pollCount) 判空保护，防止报错
             function updatePollIndicator() {
                 if (pollingIndicator) {
                     pollingIndicator.style.display = 'flex';
-                    pollCount.textContent = `(${pollAttempts} 次)`;
+                    if (pollCount) {
+                        pollCount.textContent = `(${pollAttempts} 次)`;
+                    }
                 }
             }
 
