@@ -736,7 +736,7 @@
 
                 <!-- 【界面1：初始界面】新增警告框 -->
                 <div class="alert-box-strong">
-                    <span>二次获取/更换设备/退出账号等个人问题均不补登以及售后<br>每个号只能接收一次码</span>
+                    <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题均不补登以及售后</span>
                 </div>
 
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
@@ -761,8 +761,8 @@
                 <!-- 【界面2：等待验证码界面】替换原有的红字框，使用更醒目的强警告 -->
                 <div class="alert-box-strong" style="margin-top: 18px;">
                     <span>
-                        每个号只能接收一次码，二次获取/更换设备/退出账号等个人问题均不补登以及售后<br>
-                        耐心等验证码，超时可释放更换号码
+                        耐心等验证码，超时可释放更换号码<br>
+                        每个号只能接收一次码，二次获取/更换设备/退出账号等个人问题均不补登以及售后
                     </span>
                 </div>
 
@@ -832,7 +832,7 @@
 
                 <!-- 【界面3：验证码已收到（主页）】新增警告框 -->
                 <div class="alert-box-strong">
-                    <span>二次获取/更换设备/退出账号等个人问题均不补登以及售后<br>每个号只能接收一次码</span>
+                    <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题均不补登以及售后</span>
                 </div>
 
             </div>
@@ -963,15 +963,15 @@
                 </div>
             </div>
 
-            <!-- 【界面4：弹窗】新增警告框 -->
-            <div class="alert-box-strong" style="margin: 14px 0;">
-                <span>二次获取/更换设备/退出账号等个人问题均不补登以及售后<br>每个号只能接收一次码</span>
-            </div>
-
-            <!-- 警告提示 (弹窗红字保留) -->
+            <!-- 【调整位置】按顺序兑换警告 移到了上面 -->
             <div class="code-warning">
                 <span class="cw-icon"></span>
                 按顺序兑换以上口令并且全部激活，<br>囤货以及不按顺序兑换不售后！
+            </div>
+
+            <!-- 【调整位置】二次获取警告 移到了下面 -->
+            <div class="alert-box-strong" style="margin: 0 0 16px 0;">
+                <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题均不补登以及售后</span>
             </div>
 
             <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
