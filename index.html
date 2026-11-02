@@ -14,7 +14,6 @@
             --primary: #007AFF;
             --primary-hover: #0066D9;
             --danger: #FF3B30;
-            --danger-hover: #E0352B;
             --success: #34C759;
             --warning: #FF9500;
             --text-primary: #1C1C1E;
@@ -76,7 +75,6 @@
         .header .logo .emoji { font-size: 32px; }
         .header .subtitle { color: var(--text-tertiary); font-size: 15px; margin-top: 4px; font-weight: 400; }
         
-        /* 订单号点击复制样式 */
         .header .order-id { 
             font-size: 13px; 
             color: var(--text-quaternary); 
@@ -88,9 +86,7 @@
             transition: color var(--transition);
             display: inline-block;
         }
-        .header .order-id:hover {
-            color: var(--primary);
-        }
+        .header .order-id:hover { color: var(--primary); }
 
         .btn {
             display: inline-flex;
@@ -157,8 +153,7 @@
         }
         .info-card .label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; margin-bottom: 8px; }
         .phone-number { font-size: 28px; font-weight: 600; letter-spacing: 2px; color: var(--text-primary); user-select: all; }
-        .code-number { font-size: 36px; font-weight: 700; letter-spacing: 6px; color: var(--primary); padding: 8px 0; user-select: all; font-family: 'SF Mono', 'Consolas', monospace; }
-
+        
         .status-text {
             font-weight: 500;
             padding: 14px 16px;
@@ -628,6 +623,24 @@
         }
         .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
+        /* ===== 新增：无图标经典强警告红 ===== */
+        .alert-box-strong {
+            background: #FFF2F0;
+            border: 2px solid #FF4D4F;
+            border-radius: var(--radius-sm);
+            padding: 12px 10px;
+            margin: 16px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.1);
+        }
+        .alert-box-strong span {
+            font-size: 14px;
+            color: #D9363E;
+            font-weight: 700;
+            line-height: 1.5;
+            display: inline-block;
+        }
+
         /* ===== 方案3：轻量渐变描边 ===== */
         .code-contact, .global-footer {
             margin-top: 20px;
@@ -679,6 +692,7 @@
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
             .code-contact, .global-footer { font-size: 13px; padding: 10px; }
             .code-contact .contact-v, .global-footer .contact-v { font-size: 18px; }
+            .alert-box-strong span { font-size: 13px; }
         }
     </style>
 </head>
@@ -699,7 +713,6 @@
         <div id="orderView" class="hidden">
             <div class="header">
                 <div class="logo"><span class="emoji">📱</span> 获取验证码</div>
-                <!-- 订单号显示区（点击自动复制已在 JS 中绑定） -->
                 <div class="order-id" id="orderIdDisplay" title="点击复制订单号"></div>
             </div>
 
@@ -721,6 +734,11 @@
                     <span class="tb-arrow">›</span>
                 </div>
 
+                <!-- 【界面1：初始界面】新增警告框 -->
+                <div class="alert-box-strong">
+                    <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题均不补登以及售后</span>
+                </div>
+
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
                     我已阅读教程，获取号码
                 </button>
@@ -740,11 +758,11 @@
                 </div>
                 <button class="btn-copy" onclick="copyPhone()">复制手机号</button>
 
-                <!-- 精准修改：仅调整此块红字的字体大小与文案 -->
-                <div style="margin-top: 18px; padding: 16px 12px; background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.25); border-radius: var(--radius-sm); text-align: center;">
-                    <span style="color: var(--danger); font-weight: 700; font-size: 14px; line-height: 1.6; display: inline-block;">
+                <!-- 【界面2：等待验证码界面】替换原有的红字框，使用更醒目的强警告 -->
+                <div class="alert-box-strong" style="margin-top: 18px;">
+                    <span>
                         耐心等验证码，超时可释放更换号码<br>
-                        二次获取验证码导致验证失败不售后
+                        每个号只能接收一次码，二次获取/更换设备/退出账号等个人问题均不补登以及售后
                     </span>
                 </div>
 
@@ -755,15 +773,9 @@
                             复制手机号到加速器获取验证码登录
                         </span>
                     </div>
-
                     <div id="countdownDisplay" class="hidden">180s</div>
-
-                    <div class="polling-indicator" id="pollingIndicator">
-                        <span class="polling-dot"></span>
-                        <span>正在轮询验证码...</span>
-                        <span class="poll-count" id="pollCount"></span>
-                    </div>
-                    <p class="text-quaternary" style="margin-top: 8px;">自动检测中，收到验证码将自动显示</p>
+                    <div class="polling-indicator" id="pollingIndicator"></div>
+                    <p class="text-quaternary"></p>
                 </div>
 
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
@@ -816,6 +828,11 @@
                         <span class="code-item-value">TE727DUH</span>
                         <button class="code-copy-btn" onclick="copyText('TE727DUH', this)">复制</button>
                     </div>
+                </div>
+
+                <!-- 【界面3：验证码已收到（主页）】新增警告框 -->
+                <div class="alert-box-strong">
+                    <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题均不补登以及售后</span>
                 </div>
 
             </div>
@@ -901,7 +918,7 @@
             </div>
 
             <div class="tutorial-tip">
-                💡 温馨提示：每个号只能接收一次验证码，退出或者换设备等个人问题均不售后。
+                💡 温馨提示：每个号只能接一次码，退出或者换设备等个人问题不售后。
             </div>
 
             <button class="btn btn-primary tutorial-footer-btn" onclick="closeTutorial()">
@@ -944,6 +961,11 @@
                     <span class="code-item-value">TE727DUH</span>
                     <button class="code-copy-btn" onclick="copyText('TE727DUH', this)">复制</button>
                 </div>
+            </div>
+
+            <!-- 【界面4：弹窗】新增警告框 -->
+            <div class="alert-box-strong" style="margin: 14px 0;">
+                <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题均不补登以及售后</span>
             </div>
 
             <!-- 警告提示 (弹窗红字保留) -->
