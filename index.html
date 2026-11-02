@@ -8,8 +8,8 @@
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #e8f0fe 0%, #fde8f0 50%, #e2f0ff 100%);
-            --card-bg: rgba(255, 255, 255, 0.65);
-            --card-border: 1px solid rgba(255, 255, 255, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --card-border: 1px solid rgba(255, 255, 255, 0.9);
             --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.02);
             --primary: #007AFF;
             --primary-hover: #0066D9;
@@ -42,7 +42,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 24px 16px;
+            padding: 12px 10px;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -57,14 +57,14 @@
             border: var(--card-border);
             border-radius: var(--radius);
             box-shadow: var(--card-shadow);
-            padding: 32px 24px;
+            padding: 20px 16px;
             text-align: center;
             transition: box-shadow var(--transition);
         }
 
-        .header { margin-bottom: 24px; }
+        .header { margin-bottom: 12px; }
         .header .logo {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             letter-spacing: -0.5px;
             color: var(--text-primary);
@@ -73,14 +73,13 @@
             justify-content: center;
             gap: 8px;
         }
-        .header .logo .emoji { font-size: 32px; }
-        .header .subtitle { color: var(--text-tertiary); font-size: 15px; margin-top: 4px; font-weight: 400; }
+        .header .logo .emoji { font-size: 26px; }
+        .header .subtitle { color: var(--text-tertiary); font-size: 13px; margin-top: 4px; font-weight: 400; }
         
-        /* 订单号点击复制样式 */
         .header .order-id { 
-            font-size: 13px; 
+            font-size: 12px; 
             color: var(--text-quaternary); 
-            margin-top: 6px; 
+            margin-top: 4px; 
             font-weight: 400; 
             letter-spacing: 0.5px; 
             cursor: pointer;
@@ -88,9 +87,7 @@
             transition: color var(--transition);
             display: inline-block;
         }
-        .header .order-id:hover {
-            color: var(--primary);
-        }
+        .header .order-id:hover { color: var(--primary); }
 
         .btn {
             display: inline-flex;
@@ -98,16 +95,16 @@
             justify-content: center;
             gap: 8px;
             width: 100%;
-            padding: 14px 20px;
+            padding: 12px 20px;
             border: none;
             border-radius: 999px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all var(--transition);
             font-family: var(--font);
             letter-spacing: 0.3px;
-            min-height: 50px;
+            min-height: 46px;
             white-space: normal;
             line-height: 1.3;
         }
@@ -133,9 +130,9 @@
             background: transparent;
             border: 1px dashed rgba(0, 122, 255, 0.4);
             color: var(--primary);
-            padding: 10px 20px;
+            padding: 6px 16px;
             border-radius: 999px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all var(--transition);
@@ -143,32 +140,31 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            margin-top: 10px;
+            margin-top: 6px;
         }
         .btn-copy:hover { border-color: var(--primary); background: rgba(0, 122, 255, 0.04); }
 
         .info-card {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.6);
             border-radius: var(--radius-sm);
-            padding: 20px 16px;
-            margin: 16px 0;
+            padding: 12px 16px;
+            margin: 10px 0;
             border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);
         }
-        .info-card .label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; margin-bottom: 8px; }
-        .phone-number { font-size: 28px; font-weight: 600; letter-spacing: 2px; color: var(--text-primary); user-select: all; }
-        .code-number { font-size: 36px; font-weight: 700; letter-spacing: 6px; color: var(--primary); padding: 8px 0; user-select: all; font-family: 'SF Mono', 'Consolas', monospace; }
-
+        .info-card .label { color: var(--text-tertiary); font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+        .phone-number { font-size: 26px; font-weight: 600; letter-spacing: 1px; color: var(--text-primary); user-select: all; }
+        
         .status-text {
             font-weight: 500;
-            padding: 14px 16px;
+            padding: 10px 14px;
             border-radius: var(--radius-sm);
-            margin: 12px 0 16px;
+            margin: 10px 0;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.5;
             backdrop-filter: blur(10px);
         }
@@ -177,40 +173,25 @@
         .status-warning { background: rgba(255, 149, 0, 0.1); border: 1px solid rgba(255, 149, 0, 0.2); color: #B25900; }
         .status-error { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.2); color: var(--danger); }
 
-        .countdown { font-size: 18px; font-weight: 600; color: var(--warning); margin-top: 8px; }
-        
-        /* 隐藏了轮询指示器 */
-        .polling-indicator { display: none !important; }
-        .text-quaternary { display: none !important; }
-
-        .locked-banner, .done-banner {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: var(--radius-sm);
-            padding: 28px 20px;
-            margin: 16px 0;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-        }
-        .locked-banner .icon, .done-banner .icon { font-size: 44px; display: block; margin-bottom: 12px; }
-        .locked-banner .title { font-size: 20px; font-weight: 700; color: var(--danger); }
-        .done-banner .title { font-size: 20px; font-weight: 700; color: var(--success); }
-        .locked-banner .desc, .done-banner .desc { color: var(--text-secondary); font-size: 14px; margin-top: 6px; }
+        /* 隐藏轮询相关 */
+        .polling-indicator, .text-quaternary { display: none !important; }
 
         /* ===== 置顶教程大按钮 ===== */
         .tutorial-banner {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            padding: 20px 16px;
-            margin: 0 0 18px;
+            padding: 12px 10px;
+            margin: 0 0 12px;
             background: linear-gradient(135deg, rgba(0, 122, 255, 0.16), rgba(0, 122, 255, 0.06));
-            border: 2.5px dashed rgba(0, 122, 255, 0.55);
+            border: 2px dashed rgba(0, 122, 255, 0.55);
             border-radius: var(--radius-sm);
             color: var(--primary);
-            font-size: 21px;
+            font-size: 18px;
             font-weight: 800;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.5px;
             line-height: 1.3;
             cursor: pointer;
             user-select: none;
@@ -219,15 +200,15 @@
         }
         .tutorial-banner:hover { background: linear-gradient(135deg, rgba(0, 122, 255, 0.24), rgba(0, 122, 255, 0.1)); border-color: var(--primary); }
         .tutorial-banner:active { transform: scale(0.97); }
-        .tutorial-banner .tb-icon { font-size: 26px; flex-shrink: 0; }
-        .tutorial-banner .tb-arrow { font-size: 26px; font-weight: 400; line-height: 1; margin-left: 2px; }
+        .tutorial-banner .tb-icon { font-size: 22px; flex-shrink: 0; }
+        .tutorial-banner .tb-arrow { font-size: 22px; font-weight: 400; line-height: 1; margin-left: 2px; }
 
         @keyframes tutorialGlow {
             0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.28); }
-            50%      { box-shadow: 0 0 0 9px rgba(0, 122, 255, 0); }
+            50%      { box-shadow: 0 0 0 8px rgba(0, 122, 255, 0); }
         }
 
-        .text-tertiary { color: var(--text-tertiary); font-size: 14px; }
+        .text-tertiary { color: var(--text-tertiary); font-size: 13px; }
 
         /* ===== 教程弹窗样式 ===== */
         .tutorial-overlay {
@@ -259,9 +240,6 @@
             from { opacity: 0; transform: scale(0.92) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
-        .tutorial-modal::-webkit-scrollbar { width: 4px; }
-        .tutorial-modal::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
-
         .tutorial-close {
             position: absolute;
             top: 16px;
@@ -282,356 +260,67 @@
             z-index: 10;
         }
         .tutorial-close:hover { background: rgba(0, 0, 0, 0.12); }
-
-        .tutorial-title {
-            font-size: 22px;
-            font-weight: 700;
-            text-align: center;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-            letter-spacing: -0.3px;
-        }
-        .tutorial-subtitle {
-            text-align: center;
-            color: var(--text-tertiary);
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .tutorial-step {
-            margin-bottom: 28px;
-            background: #f8f9fc;
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            border: 1px solid rgba(0, 0, 0, 0.04);
-        }
+        .tutorial-title { font-size: 22px; font-weight: 700; text-align: center; color: var(--text-primary); margin-bottom: 6px; letter-spacing: -0.3px; }
+        .tutorial-subtitle { text-align: center; color: var(--text-tertiary); font-size: 14px; margin-bottom: 20px; }
+        .tutorial-step { margin-bottom: 20px; background: #f8f9fc; border-radius: var(--radius-sm); padding: 14px; border: 1px solid rgba(0, 0, 0, 0.04); }
         .tutorial-step:last-child { margin-bottom: 0; }
-
-        .tutorial-step-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
+        .tutorial-step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .tutorial-step-num {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            width: 26px; height: 26px; border-radius: 50%;
             background: linear-gradient(135deg, var(--primary), #0056b3);
-            color: #fff;
-            font-size: 15px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 3px 8px rgba(0, 122, 255, 0.3);
+            color: #fff; font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        .tutorial-step-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .tutorial-step-img {
-            width: 100%;
-            border-radius: var(--radius-xs);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            display: block;
-            margin-bottom: 12px;
-            background: #f0f0f5;
-            min-height: 80px;
-            object-fit: contain;
-        }
-
-        .tutorial-step-desc {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.7;
-            padding-left: 2px;
-        }
-        .tutorial-step-desc strong {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        /* ===== 教程内口令展示区 ===== */
-        .tutorial-codes-box {
-            margin-top: 14px;
-            padding: 14px 16px;
-            background: rgba(0, 122, 255, 0.05);
-            border: 1.5px dashed rgba(0, 122, 255, 0.4);
-            border-radius: var(--radius-xs);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .tutorial-code-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .tutorial-code-val {
-            font-family: 'SF Mono', 'Consolas', monospace;
-            color: var(--primary);
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            background: #fff;
-            padding: 4px 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(0, 122, 255, 0.2);
-            user-select: all;
-        }
-
-        .tutorial-tip {
-            margin-top: 24px;
-            padding: 14px 16px;
-            background: rgba(255, 149, 0, 0.08);
-            border: 1px solid rgba(255, 149, 0, 0.2);
-            border-radius: var(--radius-xs);
-            font-size: 13px;
-            color: #B25900;
-            line-height: 1.6;
-            text-align: center;
-        }
-
-        .tutorial-footer-btn {
-            margin-top: 24px;
-        }
+        .tutorial-step-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+        .tutorial-step-img { width: 100%; border-radius: var(--radius-xs); border: 1px solid rgba(0, 0, 0, 0.06); display: block; margin-bottom: 10px; background: #f0f0f5; object-fit: contain; }
+        .tutorial-step-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .tutorial-step-desc strong { color: var(--primary); font-weight: 600; }
+        .tutorial-codes-box { margin-top: 12px; padding: 12px; background: rgba(0, 122, 255, 0.05); border: 1.5px dashed rgba(0, 122, 255, 0.4); border-radius: var(--radius-xs); display: flex; flex-direction: column; gap: 8px; }
+        .tutorial-code-item { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; }
+        .tutorial-code-val { font-family: 'SF Mono', 'Consolas', monospace; color: var(--primary); font-size: 15px; font-weight: 700; background: #fff; padding: 3px 10px; border-radius: 4px; border: 1px solid rgba(0, 122, 255, 0.2); user-select: all; }
+        .tutorial-tip { margin-top: 20px; padding: 12px; background: rgba(255, 149, 0, 0.08); border: 1px solid rgba(255, 149, 0, 0.2); border-radius: var(--radius-xs); font-size: 12px; color: #B25900; text-align: center; }
+        .tutorial-footer-btn { margin-top: 20px; }
 
         /* ===== 已完成：紧凑手机号 + 验证码 ===== */
-        .compact-card {
-            background: rgba(255, 255, 255, 0.55);
-            border-radius: var(--radius-sm);
-            padding: 14px 12px;
-            margin: 12px 0;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);
-        }
-        .compact-row {
-            display: flex;
-            gap: 10px;
-        }
-        .compact-col {
-            flex: 1;
-            min-width: 0;
-            background: rgba(242, 242, 247, 0.75);
-            border-radius: var(--radius-xs);
-            padding: 10px 8px;
-            text-align: center;
-        }
-        .compact-col .label {
-            color: var(--text-tertiary);
-            font-size: 12px;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        .compact-phone {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: var(--text-primary);
-            user-select: all;
-            word-break: break-all;
-        }
-        .compact-code {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: var(--primary);
-            user-select: all;
-            font-family: 'SF Mono', 'Consolas', monospace;
-            word-break: break-all;
-        }
-        .compact-copy-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .compact-copy-row .btn-copy {
-            flex: 1;
-            margin-top: 0;
-            justify-content: center;
-            padding: 8px 10px;
-            font-size: 13px;
-        }
+        .compact-card { background: rgba(255, 255, 255, 0.6); border-radius: var(--radius-sm); padding: 12px; margin: 12px 0; border: 1px solid rgba(255, 255, 255, 0.9); }
+        .compact-row { display: flex; gap: 8px; }
+        .compact-col { flex: 1; min-width: 0; background: rgba(242, 242, 247, 0.8); border-radius: var(--radius-xs); padding: 8px; text-align: center; }
+        .compact-col .label { color: var(--text-tertiary); font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+        .compact-phone { font-size: 15px; font-weight: 700; color: var(--text-primary); user-select: all; word-break: break-all; }
+        .compact-code { font-size: 18px; font-weight: 700; letter-spacing: 1.5px; color: var(--primary); user-select: all; font-family: 'SF Mono', 'Consolas', monospace; word-break: break-all; }
+        .compact-copy-row { display: flex; gap: 8px; margin-top: 8px; }
+        .compact-copy-row .btn-copy { flex: 1; margin-top: 0; justify-content: center; padding: 6px 0; font-size: 12.5px; }
 
         /* ===== 已完成：口令兑换区 ===== */
-        .codes-card {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            border-radius: var(--radius-sm);
-            padding: 16px 14px;
-            margin: 14px 0;
-            text-align: left;
-        }
-        .codes-header {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
-            text-align: center;
-            margin-bottom: 12px;
-        }
-        .code-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: linear-gradient(135deg, rgba(0, 122, 255, 0.06), rgba(0, 122, 255, 0.02));
-            border: 1px solid rgba(0, 122, 255, 0.15);
-            border-radius: var(--radius-xs);
-            padding: 10px 12px;
-            margin-bottom: 8px;
-        }
+        .codes-card { background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: var(--radius-sm); padding: 12px; margin: 12px 0; text-align: left; }
+        .codes-header { font-size: 14px; font-weight: 700; color: var(--text-primary); text-align: center; margin-bottom: 10px; }
+        .code-item { display: flex; align-items: center; gap: 8px; background: rgba(0, 122, 255, 0.05); border: 1px solid rgba(0, 122, 255, 0.15); border-radius: var(--radius-xs); padding: 8px 10px; margin-bottom: 6px; }
         .code-item:last-of-type { margin-bottom: 0; }
-        .code-item-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            flex-shrink: 0;
-        }
-        .code-item-value {
-            flex: 1;
-            min-width: 0;
-            font-family: 'SF Mono', 'Consolas', monospace;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: 0.5px;
-            user-select: all;
-            word-break: break-all;
-        }
-        .code-copy-btn {
-            flex-shrink: 0;
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: 999px;
-            padding: 7px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: var(--font);
-            transition: all var(--transition);
-        }
-        .code-copy-btn:hover { background: var(--primary-hover); }
-        .code-copy-btn:active { transform: scale(0.95); }
+        .code-item-label { font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
+        .code-item-value { flex: 1; font-family: 'SF Mono', 'Consolas', monospace; font-size: 15px; font-weight: 700; color: var(--primary); user-select: all; word-break: break-all; }
+        .code-copy-btn { background: var(--primary); color: #fff; border: none; border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .code-copy-btn.copied { background: var(--success); }
 
         /* ===== 收到验证码弹窗 ===== */
-        .code-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 1100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px 16px;
-            overflow-y: auto;
-        }
-        .code-modal {
-            width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
-            background: #fff;
-            border-radius: var(--radius);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-            padding: 26px 18px 22px;
-            text-align: center;
-            animation: modalIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .code-modal::-webkit-scrollbar { width: 4px; }
-        .code-modal::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
-
-        .code-modal-icon { font-size: 42px; line-height: 1; margin-bottom: 6px; }
-        .code-modal-title { font-size: 21px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
-        .code-modal-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; margin-bottom: 18px; }
-
-        .cm-grid { display: flex; gap: 10px; margin-bottom: 16px; }
-        .cm-box {
-            flex: 1;
-            min-width: 0;
-            background: rgba(242, 242, 247, 0.9);
-            border-radius: var(--radius-xs);
-            padding: 12px 8px;
-            border: 1px solid rgba(0, 0, 0, 0.04);
-        }
-        .cm-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; margin-bottom: 6px; }
-        .cm-value {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: 0.5px;
-            user-select: all;
-            word-break: break-all;
-            margin-bottom: 9px;
-            line-height: 1.3;
-        }
-        .cm-value.cm-code-val {
-            color: var(--primary);
-            font-family: 'SF Mono', 'Consolas', monospace;
-            font-size: 22px;
-            letter-spacing: 2px;
-        }
-        .cm-copy-btn {
-            width: 100%;
-            border: none;
-            border-radius: 999px;
-            background: var(--primary);
-            color: #fff;
-            font-size: 12.5px;
-            font-weight: 600;
-            padding: 8px 6px;
-            cursor: pointer;
-            font-family: var(--font);
-            transition: all var(--transition);
-        }
-        .cm-copy-btn:hover { background: var(--primary-hover); }
-        .cm-copy-btn:active { transform: scale(0.96); }
-        .cm-copy-btn.copied { background: var(--success); }
-
-        .codes-wrap {
-            background: rgba(0, 122, 255, 0.04);
-            border: 1.5px dashed rgba(0, 122, 255, 0.35);
-            border-radius: var(--radius-xs);
-            padding: 12px 12px 6px;
-            margin-bottom: 14px;
-            text-align: left;
-        }
-        .codes-wrap-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-primary);
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        /* 弹窗内的红字警告 */
-        .code-warning {
-            background: rgba(255, 59, 48, 0.08);
-            border: 1.5px solid rgba(255, 59, 48, 0.3);
-            border-radius: var(--radius-xs);
-            padding: 13px 14px;
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--danger);
-            line-height: 1.65;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
+        .code-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 1100; display: flex; align-items: center; justify-content: center; padding: 20px 16px; overflow-y: auto; }
+        .code-modal { width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; background: #fff; border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); padding: 24px 16px 20px; text-align: center; animation: modalIn 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .code-modal-icon { font-size: 38px; line-height: 1; margin-bottom: 4px; }
+        .code-modal-title { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        .code-modal-sub { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; margin-bottom: 16px; }
+        .cm-grid { display: flex; gap: 10px; margin-bottom: 12px; }
+        .cm-box { flex: 1; background: rgba(242, 242, 247, 0.9); border-radius: var(--radius-xs); padding: 10px 8px; border: 1px solid rgba(0, 0, 0, 0.04); }
+        .cm-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; margin-bottom: 4px; }
+        .cm-value { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .cm-value.cm-code-val { color: var(--primary); font-family: 'SF Mono', 'Consolas', monospace; font-size: 20px; letter-spacing: 1.5px; }
+        .cm-copy-btn { width: 100%; border: none; border-radius: 999px; background: var(--primary); color: #fff; font-size: 12px; font-weight: 600; padding: 6px 0; cursor: pointer; }
+        .codes-wrap { background: rgba(0, 122, 255, 0.04); border: 1.5px dashed rgba(0, 122, 255, 0.35); border-radius: var(--radius-xs); padding: 10px 10px 4px; margin-bottom: 12px; text-align: left; }
+        .codes-wrap-title { font-size: 13px; font-weight: 700; color: var(--text-primary); text-align: center; margin-bottom: 8px; }
+        .code-warning { background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.3); border-radius: var(--radius-xs); padding: 10px; font-size: 13px; font-weight: 700; color: var(--danger); line-height: 1.5; text-align: center; margin-bottom: 14px; }
 
         /* ===== 方案3：轻量渐变描边 ===== */
         .code-contact, .global-footer {
-            margin-top: 20px;
-            padding: 12px;
+            margin-top: 16px;
+            padding: 10px;
             background: #fff;
             border: 2px solid transparent;
             background-clip: padding-box, border-box;
@@ -639,46 +328,27 @@
             background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, #007AFF, #FF2D55);
             border-radius: 12px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #333;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             user-select: all;
         }
-        .code-contact { margin-top: 18px; }
+        .code-contact { margin-top: 14px; }
         
         .code-contact .contact-v, .global-footer .contact-v {
             background: linear-gradient(135deg, #007AFF, #FF2D55);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 900;
-            font-size: 20px;
+            font-size: 18px;
             font-family: 'SF Mono', Consolas, monospace;
             letter-spacing: 1px;
             cursor: pointer;
-        }
-
-        @media (max-width: 480px) {
-            .tutorial-modal { padding: 24px 16px 28px; max-height: 95vh; border-radius: 20px; }
-            .tutorial-title { font-size: 20px; }
-            .tutorial-step { padding: 14px; }
-            .tutorial-step-title { font-size: 15px; }
-            .tutorial-step-desc { font-size: 13px; }
-            .tutorial-banner { font-size: 19px; padding: 18px 12px; }
-            .tutorial-banner .tb-icon { font-size: 23px; }
-            .compact-phone { font-size: 15px; }
-            .compact-code { font-size: 18px; letter-spacing: 1.5px; }
-            .code-modal { padding: 22px 14px 18px; max-height: 95vh; border-radius: 20px; }
-            .code-modal-title { font-size: 19px; }
-            .cm-value { font-size: 15px; }
-            .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
-            .code-warning { font-size: 12.5px; padding: 11px 10px; }
-            .code-contact, .global-footer { font-size: 13px; padding: 10px; }
-            .code-contact .contact-v, .global-footer .contact-v { font-size: 18px; }
         }
     </style>
 </head>
@@ -699,16 +369,11 @@
         <div id="orderView" class="hidden">
             <div class="header">
                 <div class="logo"><span class="emoji">📱</span> 获取验证码</div>
-                <!-- 订单号显示区（点击自动复制已在 JS 中绑定） -->
                 <div class="order-id" id="orderIdDisplay" title="点击复制订单号"></div>
             </div>
 
             <div id="lockedBox" class="hidden">
-                <div class="locked-banner">
-                    <span class="icon">🔒</span>
-                    <div class="title">此链接已失效</div>
-                    <div class="desc">该订单已结束或已被管理员释放</div>
-                </div>
+                <div class="status-text status-error">🔒 此链接已失效或已被释放</div>
                 <button class="btn btn-secondary" onclick="location.reload()">🔄 刷新页面</button>
             </div>
 
@@ -721,10 +386,10 @@
                     <span class="tb-arrow">›</span>
                 </div>
 
-                <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
+                <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 14px 10px; margin-top: 6px;">
                     我已阅读教程，获取号码
                 </button>
-                <p class="text-tertiary" style="margin-top: 16px;">点击后获取手机号，有效期 180 秒</p>
+                <p class="text-tertiary" style="margin-top: 10px;">点击后获取手机号，有效期 180 秒</p>
             </div>
 
             <div id="phoneBox" class="hidden">
@@ -740,33 +405,21 @@
                 </div>
                 <button class="btn-copy" onclick="copyPhone()">复制手机号</button>
 
-                <div style="margin-top: 18px; padding: 16px 12px; background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.25); border-radius: var(--radius-sm); text-align: center;">
-                    <span style="color: var(--danger); font-weight: 700; font-size: 16px; line-height: 1.6; display: inline-block;">
-                        耐心等待接收验证码<br>
-                        不要二次获取验证码，超时可以释放号码换号<br>
-                        二次获取验证导致验证失败不售后
+                <!-- 紧凑修改后的红字警告 -->
+                <div style="margin-top: 12px; padding: 12px 10px; background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.25); border-radius: var(--radius-sm); text-align: center;">
+                    <span style="color: var(--danger); font-weight: 700; font-size: 14px; line-height: 1.5; display: inline-block;">
+                        耐心等验证码，超时可释放更换号码<br>
+                        二次获取验证码导致验证失败不售后
                     </span>
                 </div>
 
-                <!-- 此处已隐藏红框内的内容 -->
+                <!-- 隐藏的轮询提示和多余卡片 -->
                 <div style="display: none;">
-                    <div style="margin-top: 12px; padding: 16px 12px; background: rgba(255, 255, 255, 0.5); border-radius: var(--radius-sm); border: 1px solid var(--separator); text-align: center;">
-                        <span style="color: var(--text-primary); font-weight: 600; font-size: 15px; letter-spacing: 0.3px;">
-                            复制手机号到加速器获取验证码登录
-                        </span>
-                    </div>
-
-                    <div id="countdownDisplay" class="hidden">180s</div>
-
-                    <div class="polling-indicator" id="pollingIndicator">
-                        <span class="polling-dot"></span>
-                        <span>正在轮询验证码...</span>
-                        <span class="poll-count" id="pollCount"></span>
-                    </div>
-                    <p class="text-quaternary" style="margin-top: 8px;">自动检测中，收到验证码将自动显示</p>
+                    <div id="countdownDisplay">180s</div>
+                    <div class="polling-indicator" id="pollingIndicator"></div>
                 </div>
 
-                <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 14px; font-size: 14px; min-height: 42px;">
                     释放手机号，重新获取（180秒后可操作）
                 </button>
             </div>
@@ -774,10 +427,10 @@
             <div id="timeoutBox" class="hidden">
                 <div class="status-text status-warning">⏰ 手机号已过期（180秒未收到验证码）</div>
                 <p class="text-tertiary" style="margin-top: 8px;">号码已自动释放，请重新获取新号码</p>
-                <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtnTimeout" style="margin-top: 16px;">重新获取手机号</button>
+                <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtnTimeout" style="margin-top: 12px;">重新获取手机号</button>
             </div>
 
-            <!-- ===== 已完成状态：上半部分紧凑手机号+验证码，下半部分口令兑换 ===== -->
+            <!-- ===== 已完成状态：紧凑手机号+验证码，口令兑换 ===== -->
             <div id="doneBox" class="hidden">
                 <div class="tutorial-banner" onclick="showTutorial()" title="点击查看登录教程">
                     <span class="tb-icon">📖</span>
@@ -785,7 +438,6 @@
                     <span class="tb-arrow">›</span>
                 </div>
 
-                <!-- 紧凑：手机号 + 验证码 -->
                 <div class="compact-card">
                     <div class="compact-row">
                         <div class="compact-col">
@@ -803,7 +455,6 @@
                     </div>
                 </div>
 
-                <!-- 口令兑换区 -->
                 <div class="codes-card">
                     <div class="codes-header"> 登录后兑换以下口令（按顺序全部兑换）</div>
                     <div class="code-item">
@@ -817,16 +468,15 @@
                         <button class="code-copy-btn" onclick="copyText('TE727DUH', this)">复制</button>
                     </div>
                 </div>
-
             </div>
 
             <div id="errorBox" class="hidden">
                 <div class="status-text status-error" id="errorMessage"></div>
-                <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">🔄 重试</button>
+                <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 12px;">🔄 重试</button>
             </div>
         </div>
 
-        <!-- ===== 全局底部联系方式（方案3） ===== -->
+        <!-- ===== 全局底部联系方式 ===== -->
         <div class="global-footer">
             制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
         </div>
@@ -836,58 +486,52 @@
     <div class="tutorial-overlay hidden" id="tutorialOverlay">
         <div class="tutorial-modal">
             <button class="tutorial-close" onclick="closeTutorial()">✕</button>
-
             <div class="tutorial-title">📖 登录教程</div>
             <div class="tutorial-subtitle">首次使用请按以下步骤操作</div>
 
-            <!-- 步骤 1 -->
             <div class="tutorial-step">
                 <div class="tutorial-step-header">
                     <div class="tutorial-step-num">1</div>
                     <div class="tutorial-step-title">打开加速器，进入登录页面</div>
                 </div>
-                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYX6JACIRtd7MvZXSER.png" alt="步骤1：打开加速器登录页面" loading="lazy">
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYX6JACIRtd7MvZXSER.png" alt="步骤1" loading="lazy">
                 <div class="tutorial-step-desc">
                     迅游客户端必须带有口令入口，<strong>没口令入口去官网重下</strong>，没口令还去接验证码登录不退换
                 </div>
             </div>
 
-            <!-- 步骤 2 -->
             <div class="tutorial-step">
                 <div class="tutorial-step-header">
                     <div class="tutorial-step-num">2</div>
                     <div class="tutorial-step-title">输入手机号，获取验证码</div>
                 </div>
-                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYX5ZFV8LOyzHj4xc28.png" alt="步骤2：输入手机号获取验证码" loading="lazy">
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYX5ZFV8LOyzHj4xc28.png" alt="步骤2" loading="lazy">
                 <div class="tutorial-step-desc">
                     在登录页面输入上方获取到的<strong>手机号码</strong>，点击<strong>获取验证码</strong>按钮，然后在网页耐心等待验证码，不要二次获取，二次获取导致验证失败不售后。
                 </div>
             </div>
 
-            <!-- 步骤 3 -->
             <div class="tutorial-step">
                 <div class="tutorial-step-header">
                     <div class="tutorial-step-num">3</div>
                     <div class="tutorial-step-title">按顺序输入口令兑换码</div>
                 </div>
-                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYXBIl0V6cpti0HZewG.png" alt="步骤3：输入验证码完成登录" loading="lazy">
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYXBIl0V6cpti0HZewG.png" alt="步骤3" loading="lazy">
                 <div class="tutorial-step-desc">
                     登录后<strong>按顺序输入口令兑换码</strong>全部都要兑换，<strong>囤货不售后</strong>，兑换完成后点击窗口右上角的查看兑换记录
                 </div>
             </div>
 
-            <!-- 步骤 4 -->
             <div class="tutorial-step">
                 <div class="tutorial-step-header">
                     <div class="tutorial-step-num">4</div>
                     <div class="tutorial-step-title">兑换完成，去已兑换记录激活</div>
                 </div>
-                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYWzgTWNZbr763i3fBJ.png" alt="步骤4：登录成功" loading="lazy">
+                <img class="tutorial-step-img" src="https://pic.imgdd.cc/i/034aYWzgTWNZbr763i3fBJ.png" alt="步骤4" loading="lazy">
                 <div class="tutorial-step-desc">
                     全部一次激活，不要只激活一个，囤货过期不售后，<strong>有任何问题，拍视频留言，不要扯皮，后台都可以看记录</strong>
                 </div>
                 
-                <!-- 新增：口令展示区（按两行分开） -->
                 <div class="tutorial-codes-box">
                     <div class="tutorial-code-item">
                         <span>口令1：</span>
@@ -917,7 +561,6 @@
             <div class="code-modal-title">验证码已收到</div>
             <div class="code-modal-sub">请立即复制以下信息完成登录</div>
 
-            <!-- 手机号 / 验证码 -->
             <div class="cm-grid">
                 <div class="cm-box">
                     <div class="cm-label">手机号</div>
@@ -931,7 +574,6 @@
                 </div>
             </div>
 
-            <!-- 口令 -->
             <div class="codes-wrap">
                 <div class="codes-wrap-title">🔑 登录后兑换以下口令（按顺序全部兑换）</div>
                 <div class="code-item">
@@ -946,19 +588,15 @@
                 </div>
             </div>
 
-            <!-- 警告提示 (弹窗红字保留) -->
             <div class="code-warning">
-                <span class="cw-icon"></span>
                 按顺序兑换以上口令并且全部激活，<br>囤货以及不按顺序兑换不售后！
             </div>
 
             <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
 
-            <!-- 收到验证码弹窗底部微信号 (方案3) -->
             <div class="code-contact">
                 制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
             </div>
-
         </div>
     </div>
 
@@ -1005,7 +643,6 @@
             const pollingIndicator = document.getElementById('pollingIndicator');
             const pollCount = document.getElementById('pollCount');
 
-            // ===== 教程弹窗 =====
             const tutorialOverlay = document.getElementById('tutorialOverlay');
 
             window.showTutorial = function() {
@@ -1019,12 +656,9 @@
             };
 
             tutorialOverlay.addEventListener('click', function(e) {
-                if (e.target === tutorialOverlay) {
-                    closeTutorial();
-                }
+                if (e.target === tutorialOverlay) closeTutorial();
             });
 
-            // ===== 收到验证码弹窗 =====
             const codeOverlay = document.getElementById('codeOverlay');
             const cmPhone = document.getElementById('cmPhone');
             const cmCode = document.getElementById('cmCode');
@@ -1046,9 +680,7 @@
             };
 
             codeOverlay.addEventListener('click', function(e) {
-                if (e.target === codeOverlay) {
-                    closeCodeModal();
-                }
+                if (e.target === codeOverlay) closeCodeModal();
             });
 
             document.addEventListener('keydown', function(e) {
@@ -1062,7 +694,6 @@
                 }
             });
 
-            // ===== 复制工具函数 =====
             function markCopied(btn, label) {
                 if (!btn) { alert('已复制'); return; }
                 const orig = btn.textContent;
@@ -1103,7 +734,6 @@
                 }
             };
 
-            // 弹窗内复制按钮
             window.copyModalPhone = function(btn) {
                 const phone = cmPhone.textContent.trim();
                 if (!phone || phone === '---') return;
@@ -1116,7 +746,6 @@
                 copyText(code, btn, '复制验证码');
             };
 
-            // ===== 原有逻辑 =====
             function showUI(state) {
                 initBox.classList.add('hidden');
                 phoneBox.classList.add('hidden');
@@ -1214,8 +843,6 @@
                 codeDisplay.textContent = code;
                 showUI('done');
                 setStatus('验证码已收到', 'success');
-
-                // ★ 弹出“已收到验证码”卡片
                 showCodeModal(phone || currentPhone, code);
             }
 
@@ -1423,7 +1050,6 @@
                 }
             }
 
-            // 初始化
             (function init() {
                 let oid = null;
 
@@ -1444,7 +1070,6 @@
                 currentOid = oid;
                 orderIdDisplay.textContent = '订单号: ' + oid;
                 
-                // 增加：点击订单号自动复制的逻辑
                 orderIdDisplay.addEventListener('click', function() {
                     if (!currentOid) return;
                     const originalText = this.textContent;
