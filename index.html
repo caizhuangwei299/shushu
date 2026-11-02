@@ -194,23 +194,6 @@
         .done-banner .title { font-size: 20px; font-weight: 700; color: var(--success); }
         .locked-banner .desc, .done-banner .desc { color: var(--text-secondary); font-size: 14px; margin-top: 6px; }
 
-        .contact-footer {
-            margin-top: 24px;
-            padding: 14px 16px;
-            background: rgba(0, 122, 255, 0.08);
-            border: 1.5px dashed rgba(0, 122, 255, 0.3);
-            border-radius: var(--radius-sm);
-            text-align: center;
-            color: var(--primary);
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: 0.4px;
-            cursor: pointer;
-            user-select: all;
-            transition: all var(--transition);
-        }
-        .contact-footer:hover { background: rgba(0, 122, 255, 0.12); }
-
         /* ===== 置顶教程大按钮 ===== */
         .tutorial-banner {
             display: flex;
@@ -645,48 +628,32 @@
         }
         .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
-        /* ===== 收到验证码弹窗 - 底部联系方式（醒目版） ===== */
-        .code-contact {
-            text-align: center;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-top: 18px;
-            padding: 12px 14px;
-            background: rgba(0, 122, 255, 0.06);
-            border: 1.5px dashed rgba(0, 122, 255, 0.35);
-            border-radius: var(--radius-xs);
-            user-select: all;
-        }
-        .code-contact .contact-v {
-            color: var(--primary);
-            font-weight: 800;
-            font-size: 18px;
-            font-family: 'SF Mono', 'Consolas', monospace;
-            cursor: pointer;
-            display: inline-block;
-            margin-left: 4px;
-        }
-
-        /* ===== 全局底部联系方式（已合并到卡片内部，醒目版） ===== */
-        .global-footer {
-            margin-top: 24px;
-            padding: 14px 16px;
-            background: rgba(0, 122, 255, 0.08);
-            border: 1.5px dashed rgba(0, 122, 255, 0.4);
+        /* ===== 高级黑金醒目版 ===== */
+        .code-contact, .global-footer {
+            padding: 16px 14px;
+            background: #1A1A1A;
+            border: 1.5px solid #333;
             border-radius: var(--radius-sm);
             text-align: center;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
+            color: #AAA;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
             user-select: all;
+            margin-top: 24px;
         }
-        .global-footer .contact-v {
-            color: var(--primary);
-            font-weight: 800;
-            font-size: 20px;
+        .code-contact { margin-top: 18px; }
+        
+        .code-contact .contact-v, .global-footer .contact-v {
+            color: #FFD700;
+            font-weight: 900;
+            font-size: 22px;
             font-family: 'SF Mono', 'Consolas', monospace;
             margin-left: 6px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            cursor: pointer;
+            display: inline-block;
         }
 
         @media (max-width: 480px) {
@@ -704,8 +671,8 @@
             .cm-value { font-size: 15px; }
             .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
-            .global-footer { font-size: 15px; }
-            .code-contact { font-size: 14px; }
+            .code-contact, .global-footer { font-size: 14px; padding: 14px 10px; }
+            .code-contact .contact-v, .global-footer .contact-v { font-size: 20px; }
         }
     </style>
 </head>
@@ -793,8 +760,6 @@
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
                     释放手机号，重新获取（180秒后可操作）
                 </button>
-                
-                <!-- 此处已删除重复的卡片内联系方式 -->
             </div>
 
             <div id="timeoutBox" class="hidden">
@@ -829,7 +794,7 @@
                     </div>
                 </div>
 
-                <!-- 口令兑换区（已按需求删除底部红字） -->
+                <!-- 口令兑换区 -->
                 <div class="codes-card">
                     <div class="codes-header"> 登录后兑换以下口令（按顺序全部兑换）</div>
                     <div class="code-item">
@@ -980,7 +945,7 @@
 
             <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
 
-            <!-- 收到验证码弹窗底部微信号 -->
+            <!-- 收到验证码弹窗底部微信号 (黑金版) -->
             <div class="code-contact">
                 制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
             </div>
