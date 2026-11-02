@@ -668,27 +668,6 @@
             margin-left: 4px;
         }
 
-        /* ===== 获取验证码页面底部联系方式（醒目版） ===== */
-        .contact-us {
-            margin-top: 22px;
-            padding: 14px 12px;
-            background: rgba(0, 122, 255, 0.08);
-            border: 1.5px dashed rgba(0, 122, 255, 0.4);
-            border-radius: var(--radius-sm);
-            text-align: center;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            user-select: all;
-        }
-        .contact-us .contact-v {
-            color: var(--primary);
-            font-weight: 800;
-            font-size: 20px;
-            font-family: 'SF Mono', 'Consolas', monospace;
-            margin-left: 4px;
-        }
-
         /* ===== 全局底部联系方式（已合并到卡片内部，醒目版） ===== */
         .global-footer {
             margin-top: 24px;
@@ -725,7 +704,6 @@
             .cm-value { font-size: 15px; }
             .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
-            .contact-us { font-size: 15px; }
             .global-footer { font-size: 15px; }
             .code-contact { font-size: 14px; }
         }
@@ -815,11 +793,8 @@
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
                     释放手机号，重新获取（180秒后可操作）
                 </button>
-
-                <!-- 获取验证码卡片底部联系方式 -->
-                <div class="contact-us">
-                    制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
-                </div>
+                
+                <!-- 此处已删除重复的卡片内联系方式 -->
             </div>
 
             <div id="timeoutBox" class="hidden">
@@ -877,7 +852,7 @@
             </div>
         </div>
 
-        <!-- ===== 全局底部联系方式（已合并到主卡片内部） ===== -->
+        <!-- ===== 全局底部联系方式（唯一保留的联系方式） ===== -->
         <div class="global-footer">
             制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
         </div>
