@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="format-detection" content="telephone=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>自动发货 - 获取手机号</title>
     <style>
@@ -177,10 +178,10 @@
         .status-error { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.2); color: var(--danger); }
 
         .countdown { font-size: 18px; font-weight: 600; color: var(--warning); margin-top: 8px; }
-        .polling-indicator { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-tertiary); font-size: 14px; margin-top: 16px; }
-        .polling-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: pulse 1.5s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
-        .poll-count { font-size: 12px; color: var(--text-quaternary); margin-left: 4px; }
+        
+        /* 隐藏了轮询指示器 */
+        .polling-indicator { display: none !important; }
+        .text-quaternary { display: none !important; }
 
         .locked-banner, .done-banner {
             background: rgba(255, 255, 255, 0.5);
@@ -227,7 +228,6 @@
         }
 
         .text-tertiary { color: var(--text-tertiary); font-size: 14px; }
-        .text-quaternary { color: var(--text-quaternary); font-size: 13px; }
 
         /* ===== 教程弹窗样式 ===== */
         .tutorial-overlay {
@@ -628,32 +628,38 @@
         }
         .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
-        /* ===== 高级黑金醒目版 ===== */
+        /* ===== 方案3：轻量渐变描边 ===== */
         .code-contact, .global-footer {
-            padding: 16px 14px;
-            background: #1A1A1A;
-            border: 1.5px solid #333;
-            border-radius: var(--radius-sm);
+            margin-top: 20px;
+            padding: 12px;
+            background: #fff;
+            border: 2px solid transparent;
+            background-clip: padding-box, border-box;
+            background-origin: padding-box, border-box;
+            background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, #007AFF, #FF2D55);
+            border-radius: 12px;
             text-align: center;
-            font-size: 15px;
-            font-weight: 500;
-            color: #AAA;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             user-select: all;
-            margin-top: 24px;
         }
         .code-contact { margin-top: 18px; }
         
         .code-contact .contact-v, .global-footer .contact-v {
-            color: #FFD700;
+            background: linear-gradient(135deg, #007AFF, #FF2D55);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             font-weight: 900;
-            font-size: 22px;
-            font-family: 'SF Mono', 'Consolas', monospace;
-            margin-left: 6px;
+            font-size: 20px;
+            font-family: 'SF Mono', Consolas, monospace;
             letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
             cursor: pointer;
-            display: inline-block;
         }
 
         @media (max-width: 480px) {
@@ -671,8 +677,8 @@
             .cm-value { font-size: 15px; }
             .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
-            .code-contact, .global-footer { font-size: 14px; padding: 14px 10px; }
-            .code-contact .contact-v, .global-footer .contact-v { font-size: 20px; }
+            .code-contact, .global-footer { font-size: 13px; padding: 10px; }
+            .code-contact .contact-v, .global-footer .contact-v { font-size: 18px; }
         }
     </style>
 </head>
@@ -742,20 +748,23 @@
                     </span>
                 </div>
 
-                <div style="margin-top: 12px; padding: 16px 12px; background: rgba(255, 255, 255, 0.5); border-radius: var(--radius-sm); border: 1px solid var(--separator); text-align: center;">
-                    <span style="color: var(--text-primary); font-weight: 600; font-size: 15px; letter-spacing: 0.3px;">
-                        复制手机号到加速器获取验证码登录
-                    </span>
-                </div>
+                <!-- 此处已隐藏红框内的内容 -->
+                <div style="display: none;">
+                    <div style="margin-top: 12px; padding: 16px 12px; background: rgba(255, 255, 255, 0.5); border-radius: var(--radius-sm); border: 1px solid var(--separator); text-align: center;">
+                        <span style="color: var(--text-primary); font-weight: 600; font-size: 15px; letter-spacing: 0.3px;">
+                            复制手机号到加速器获取验证码登录
+                        </span>
+                    </div>
 
-                <div id="countdownDisplay" class="hidden">180s</div>
+                    <div id="countdownDisplay" class="hidden">180s</div>
 
-                <div class="polling-indicator" id="pollingIndicator">
-                    <span class="polling-dot"></span>
-                    <span>正在轮询验证码...</span>
-                    <span class="poll-count" id="pollCount"></span>
+                    <div class="polling-indicator" id="pollingIndicator">
+                        <span class="polling-dot"></span>
+                        <span>正在轮询验证码...</span>
+                        <span class="poll-count" id="pollCount"></span>
+                    </div>
+                    <p class="text-quaternary" style="margin-top: 8px;">自动检测中，收到验证码将自动显示</p>
                 </div>
-                <p class="text-quaternary" style="margin-top: 8px;">自动检测中，收到验证码将自动显示</p>
 
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
                     释放手机号，重新获取（180秒后可操作）
@@ -817,7 +826,7 @@
             </div>
         </div>
 
-        <!-- ===== 全局底部联系方式（唯一保留的联系方式） ===== -->
+        <!-- ===== 全局底部联系方式（方案3） ===== -->
         <div class="global-footer">
             制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
         </div>
@@ -945,7 +954,7 @@
 
             <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
 
-            <!-- 收到验证码弹窗底部微信号 (黑金版) -->
+            <!-- 收到验证码弹窗底部微信号 (方案3) -->
             <div class="code-contact">
                 制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
             </div>
