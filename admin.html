@@ -438,28 +438,6 @@
                 </div>
                 <div id="lockResult" class="hidden alert" style="margin-top:10px;"></div>
             </div>
-
-            <!-- ===== 新增：批量接码卡片 ===== -->
-            <div class="ios-card">
-                <div class="ios-card-header" style="margin-bottom: 10px;">
-                    <span class="ios-card-title"><span class="emoji">⚡</span> 批量接码</span>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span class="ios-card-sub" id="batchStatusText"></span>
-                        <button class="btn btn-secondary btn-sm" onclick="clearBatchList()">清空</button>
-                    </div>
-                </div>
-                <div class="batch-row">
-                    <div class="form-group">
-                        <label>获取数量</label>
-                        <input type="number" id="batchFetchCount" min="1" max="20" value="5">
-                    </div>
-                    <button class="btn btn-primary" id="batchFetchBtn" onclick="startBatchFetch()">开始获取</button>
-                </div>
-                <div class="batch-phone-list" id="batchPhoneList">
-                    <div class="list-empty">点击“开始获取”批量创建订单</div>
-                </div>
-                <div class="hint-text">手机号可单击复制 · 验证码自动刷新 · 右侧按钮释放</div>
-            </div>
         </div>
 
         <!-- ============ Tab 2: 记录 ============ -->
@@ -514,6 +492,29 @@
                 <button class="btn btn-primary btn-block" onclick="saveApiConfig()" style="margin-top: 6px;">保存 API 配置</button>
                 <div id="apiSaveResult" class="hidden alert alert-success" style="margin-top: 10px;">✅ API 配置已保存</div>
             </div>
+
+            <!-- ===== 批量接码卡片（移至此处） ===== -->
+            <div class="ios-card">
+                <div class="ios-card-header" style="margin-bottom: 10px;">
+                    <span class="ios-card-title"><span class="emoji">⚡</span> 批量接码</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="ios-card-sub" id="batchStatusText"></span>
+                        <button class="btn btn-secondary btn-sm" onclick="clearBatchList()">清空</button>
+                    </div>
+                </div>
+                <div class="batch-row">
+                    <div class="form-group">
+                        <label>获取数量</label>
+                        <input type="number" id="batchFetchCount" min="1" max="20" value="5">
+                    </div>
+                    <button class="btn btn-primary" id="batchFetchBtn" onclick="startBatchFetch()">开始获取</button>
+                </div>
+                <div class="batch-phone-list" id="batchPhoneList">
+                    <div class="list-empty">点击“开始获取”批量创建订单</div>
+                </div>
+                <div class="hint-text">手机号可单击复制 · 验证码自动刷新 · 右侧按钮释放</div>
+            </div>
+
             <div class="ios-card" style="text-align: center;">
                 <button class="btn btn-danger btn-block" onclick="logout()" style="padding: 12px; font-size: 15px;">退出登录</button>
             </div>
@@ -1008,15 +1009,15 @@
                 };
 
                 /* ============================================================
-                 *  批量接码
+                 *  批量接码（修复版：创建订单后主动 getPhone 取号）
                  * ============================================================ */
-                window.batchItems = [];        // { oid, phone, code }
+                window.batchItems = [];        // { oid, phone, code, error }
                 window.batchPollTimer = null;
                 let batchPollTicks = 0;
                 let lastBatchSignature = '';
 
                 function batchSignature() {
-                    return window.batchItems.map(i => `${i.oid}:${i.phone || ''}:${i.code || ''}`).join('|');
+                    return window.batchItems.map(i => `${i.oid}:${i.phone || ''}:${i.code || ''}:${i.error ? 1 : 0}`).join('|');
                 }
 
                 function updateBatchStatusText() {
@@ -1026,7 +1027,8 @@
                     if (!total) { el.textContent = ''; return; }
                     const got = window.batchItems.filter(i => i.phone).length;
                     const coded = window.batchItems.filter(i => i.code).length;
-                    el.textContent = `${got}/${total} 已获取${coded ? ' · ' + coded + '码' : ''}`;
+                    const failed = window.batchItems.filter(i => i.error).length;
+                    el.textContent = `${got}/${total} 已获取${coded ? ' · ' + coded + '码' : ''}${failed ? ' · ' + failed + '失败' : ''}`;
                 }
 
                 window.renderBatchList = function(force) {
@@ -1045,17 +1047,30 @@
                     lastBatchSignature = sig;
 
                     container.innerHTML = window.batchItems.map(item => {
-                        const phoneHtml = item.phone
-                            ? `<span class="batch-phone" onclick="copyBatchPhone('${item.oid}')" title="点击复制手机号">${item.phone}</span>`
-                            : `<span class="batch-phone waiting">⏳ 等待分配…</span>`;
+                        let phoneHtml;
+                        if (item.error) {
+                            phoneHtml = `<span class="batch-phone waiting" style="color:var(--danger);">⚠️ 取号失败</span>`;
+                        } else if (item.phone) {
+                            phoneHtml = `<span class="batch-phone" onclick="copyBatchPhone('${item.oid}')" title="点击复制手机号">${item.phone}</span>`;
+                        } else {
+                            phoneHtml = `<span class="batch-phone waiting">⏳ 取号中…</span>`;
+                        }
                         const codeHtml = item.code ? `<span class="batch-code">${item.code}</span>` : '';
+                        const releaseBtn = item.error
+                            ? `<button class="btn btn-secondary btn-sm batch-release" onclick="removeBatchItem('${item.oid}')">移除</button>`
+                            : `<button class="btn btn-danger btn-sm batch-release" onclick="releaseBatchItem('${item.oid}')">释放</button>`;
                         return `<div class="batch-item">
                             <div class="batch-left">${phoneHtml}${codeHtml}</div>
-                            <button class="btn btn-danger btn-sm batch-release" onclick="releaseBatchItem('${item.oid}')">释放</button>
+                            ${releaseBtn}
                         </div>`;
                     }).join('');
 
                     updateBatchStatusText();
+                };
+
+                window.removeBatchItem = function(oid) {
+                    window.batchItems = window.batchItems.filter(i => i.oid !== oid);
+                    window.renderBatchList(true);
                 };
 
                 window.copyBatchPhone = function(oid) {
@@ -1070,7 +1085,7 @@
                     if (!item) return;
                     const curCfg = getStoredConfig();
                     try {
-                        const resp = await fetch(`${API_BASE}?action=lockOrder&oid=${encodeURIComponent(oid)}&sid=${curCfg.sid}`);
+                        const resp = await fetch(`${API_BASE}?action=lockOrder&oid=${encodeURIComponent(oid)}&sid=${encodeURIComponent(curCfg.sid)}`);
                         const data = await resp.json();
                         if (data.success) {
                             window.batchItems = window.batchItems.filter(i => i.oid !== oid);
@@ -1102,46 +1117,88 @@
                     stopBatchPolling();
                     batchPollTicks = 0;
                     pollBatchTick();
-                    window.batchPollTimer = setInterval(pollBatchTick, 3000);
+                    window.batchPollTimer = setInterval(pollBatchTick, 4000);
+                }
+
+                function sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+
+                /** 对单个 oid 调用用户端同款 getPhone 接口，真正取号 */
+                async function fetchPhoneForOrder(oid) {
+                    const curCfg = getStoredConfig();
+                    const url = `${API_BASE}?action=getPhone&oid=${encodeURIComponent(oid)}&sid=${encodeURIComponent(curCfg.sid)}`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (!resp.ok || data.error) {
+                        throw new Error(data.error || '取号失败');
+                    }
+                    return {
+                        phone: data.phone || '',
+                        code: data.code || '',
+                        expire: data.expire || null,
+                        done: data.status === 'done'
+                    };
+                }
+
+                /** 查询单个订单状态 + 尝试 getSMS，拿验证码 */
+                async function fetchCodeForOrder(oid) {
+                    const curCfg = getStoredConfig();
+                    const statusUrl = `${API_BASE}?action=status&oid=${encodeURIComponent(oid)}&sid=${encodeURIComponent(curCfg.sid)}`;
+                    const statusResp = await fetch(statusUrl);
+                    const statusData = await statusResp.json();
+
+                    if (!statusResp.ok || statusData.error) {
+                        throw new Error(statusData.error || '查询状态失败');
+                    }
+                    if (statusData.status === 'done' && statusData.code) {
+                        return { status: 'done', phone: statusData.phone, code: statusData.code };
+                    }
+                    if (statusData.status === 'expired') return { status: 'expired' };
+                    if (statusData.status === 'released' || statusData.status === 'invalid') return { status: 'invalid' };
+
+                    if (statusData.status === 'active') {
+                        const smsUrl = `${API_BASE}?action=getSMS&oid=${encodeURIComponent(oid)}&sid=${encodeURIComponent(curCfg.sid)}`;
+                        const smsResp = await fetch(smsUrl);
+                        const sms = await smsResp.json();
+                        if (smsResp.ok && sms.status === 'done' && sms.code) {
+                            return { status: 'done', phone: sms.phone || statusData.phone, code: sms.code };
+                        }
+                        if (sms.status === 'expired') return { status: 'expired' };
+                    }
+                    return { status: statusData.status, phone: statusData.phone };
                 }
 
                 async function pollBatchTick() {
-                    if (!window.batchItems || window.batchItems.length === 0) { stopBatchPolling(); return; }
+                    const pending = window.batchItems.filter(i => i.phone && !i.code && !i.error);
+                    if (pending.length === 0) { stopBatchPolling(); return; }
                     batchPollTicks++;
-                    if (batchPollTicks > 400) { stopBatchPolling(); return; }   // 约 20 分钟上限
-
-                    const results = await Promise.allSettled([
-                        fetchWithTimeout(`${API_BASE}?action=listActiveOrders`, 5000),
-                        fetchWithTimeout(`${API_BASE}?action=listAllOrders&limit=100`, 8000)
-                    ]);
-
-                    // 先合并 listAllOrders（含验证码/状态），再用 listActiveOrders（含手机号）覆盖
-                    const remoteMap = new Map();
-                    results.forEach(r => {
-                        if (r.status === 'fulfilled' && r.value && Array.isArray(r.value.orders)) {
-                            r.value.orders.forEach(o => {
-                                if (!o || !o.oid) return;
-                                remoteMap.set(o.oid, Object.assign({}, remoteMap.get(o.oid) || {}, o));
-                            });
-                        }
-                    });
+                    if (batchPollTicks > 300) { stopBatchPolling(); return; } // 约 20 分钟
 
                     let changed = false;
-                    window.batchItems.forEach(item => {
-                        const remote = remoteMap.get(item.oid);
-                        if (!remote) return;
-                        if (remote.phone && remote.phone !== '---' && remote.phone !== item.phone) {
-                            item.phone = remote.phone; changed = true;
+                    for (const item of pending) {
+                        try {
+                            const res = await fetchCodeForOrder(item.oid);
+                            if (res.status === 'done' && res.code) {
+                                item.code = res.code;
+                                if (res.phone) item.phone = res.phone;
+                                changed = true;
+                            } else if (res.status === 'expired') {
+                                item.error = true;
+                                changed = true;
+                            } else if (res.status === 'invalid') {
+                                item.error = true;
+                                changed = true;
+                            }
+                        } catch (e) {
+                            // 单条失败不影响其他
                         }
-                        if (remote.code && remote.code !== item.code) {
-                            item.code = remote.code; changed = true;
-                        }
-                    });
+                        await sleep(120); // 稍微错开请求
+                    }
 
                     if (changed) window.renderBatchList(true);
 
-                    // 全部拿到验证码后停止轮询
-                    if (window.batchItems.length && window.batchItems.every(i => i.code)) {
+                    if (window.batchItems.length && window.batchItems.every(i => i.code || i.error)) {
                         stopBatchPolling();
                     }
                 }
@@ -1158,28 +1215,50 @@
                     showToast('⏳ 正在批量创建订单…');
 
                     try {
-                        const results = await Promise.allSettled(
-                            Array.from({ length: count }, () => createOrderOnly())
-                        );
-
-                        const newItems = [];
-                        results.forEach(r => {
-                            if (r.status === 'fulfilled') newItems.push({ oid: r.value, phone: '', code: '' });
-                        });
-
-                        if (newItems.length === 0) {
-                            const reason = results.find(r => r.status === 'rejected');
-                            throw new Error(reason && reason.reason ? reason.reason.message : '全部创建失败');
+                        // 1. 创建订单
+                        const created = [];
+                        for (let i = 0; i < count; i++) {
+                            try {
+                                const oid = await createOrderOnly();
+                                created.push({ oid, phone: '', code: '', error: false });
+                            } catch (e) {
+                                console.warn('创建订单失败:', e);
+                            }
                         }
 
-                        window.batchItems = newItems.concat(window.batchItems);
-                        if (window.batchItems.length > 50) window.batchItems = window.batchItems.slice(0, 50);
+                        if (created.length === 0) {
+                            throw new Error('全部创建失败');
+                        }
 
+                        window.batchItems = created.concat(window.batchItems).slice(0, 50);
                         window.renderBatchList(true);
-                        startBatchPolling();
+                        showToast(`✅ 已创建 ${created.length} 个订单，正在逐个取号…`);
 
-                        const failed = count - newItems.length;
-                        showToast(`✅ 已创建 ${newItems.length} 个订单${failed ? `，${failed} 个失败` : ''}`);
+                        // 2. 逐个 getPhone 真正取号（串行 + 小延迟，避免平台并发限制）
+                        btn.textContent = '取号中…';
+                        for (let i = 0; i < created.length; i++) {
+                            const item = created[i];
+                            try {
+                                const res = await fetchPhoneForOrder(item.oid);
+                                item.phone = res.phone || '';
+                                item.code = res.code || '';
+                                if (res.done && res.code) item.code = res.code;
+                                item.error = false;
+                            } catch (e) {
+                                console.warn('取号失败:', item.oid, e);
+                                item.error = true;
+                                item.phone = '';
+                            }
+                            window.renderBatchList(true);
+                            if (i < created.length - 1) await sleep(400);
+                        }
+
+                        const okCount = created.filter(i => i.phone && !i.error).length;
+                        const failCount = created.filter(i => i.error).length;
+                        showToast(`✅ 取号完成：${okCount} 成功${failCount ? `，${failCount} 失败` : ''}`);
+
+                        // 3. 启动验证码轮询
+                        startBatchPolling();
                     } catch (e) {
                         showToast('⚠️ ' + e.message);
                     } finally {
