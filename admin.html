@@ -131,6 +131,7 @@
         .btn-ghost:hover { background: rgba(0,122,255,0.06); }
         .btn-sm { padding: 4px 10px; font-size: 11px; min-height: 26px; border-radius: 999px; }
         .btn-block { width: 100%; justify-content: center; }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
         /* ===== 表单 ===== */
         .form-group { margin-bottom: 10px; }
@@ -219,7 +220,7 @@
         .record-item .oid { font-size: 12px; color: var(--text-tertiary); background: rgba(255, 255, 255, 0.8); padding: 2px 10px; border-radius: 12px; border: 1px solid var(--separator); }
         .record-item .row-2 { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-secondary); }
         
-        /* 新增：时间记录样式 */
+        /* 时间记录样式 */
         .record-item .row-3 { display: flex; justify-content: flex-end; font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 
         .badge-new { background: rgba(142, 142, 147, 0.15); color: var(--text-secondary); }
@@ -244,6 +245,52 @@
         /* ===== 折叠面板 ===== */
         .config-collapse { overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease; max-height: 1000px; margin-top: 12px; }
         .config-collapse.hidden-content { max-height: 0; margin-top: 0; visibility: hidden; pointer-events: none; }
+
+        /* ===== 批量接码 ===== */
+        .batch-phone-list {
+            display: flex; flex-direction: column; gap: 8px; margin-top: 12px;
+            max-height: 340px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
+        }
+        .batch-phone-list::-webkit-scrollbar { width: 4px; }
+        .batch-phone-list::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 4px; }
+
+        .batch-item {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: var(--radius-sm);
+            padding: 9px 10px;
+            transition: background 0.2s;
+        }
+        .batch-item:hover { background: rgba(255, 255, 255, 0.85); }
+        .batch-item .batch-left {
+            display: flex; align-items: center; gap: 8px;
+            flex: 1; min-width: 0; flex-wrap: wrap;
+        }
+        .batch-item .batch-phone {
+            font-size: 15px; font-weight: 700; letter-spacing: 0.6px; color: var(--text-primary);
+            padding: 2px 8px; border-radius: 8px; background: rgba(0, 122, 255, 0.07);
+            cursor: pointer; transition: background 0.2s, transform 0.15s;
+            user-select: none; -webkit-user-select: none;
+        }
+        .batch-item .batch-phone:active { background: rgba(0, 122, 255, 0.2); transform: scale(0.96); }
+        .batch-item .batch-phone.waiting {
+            font-size: 12px; font-weight: 500; color: var(--text-tertiary);
+            background: transparent; cursor: default; letter-spacing: 0;
+        }
+        .batch-item .batch-code {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 13px; font-weight: 700; color: var(--primary);
+            background: rgba(0, 122, 255, 0.10);
+            padding: 3px 9px; border-radius: 8px; letter-spacing: 1.5px;
+            animation: codePop 0.28s ease;
+        }
+        @keyframes codePop {
+            0% { transform: scale(0.65); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .batch-item .batch-release { flex-shrink: 0; }
 
         /* ===== 底部导航栏 ===== */
         .bottom-nav {
@@ -283,6 +330,9 @@
             .stat-item { padding: 8px; min-width: 70px; }
             .stat-item .num { font-size: 16px; }
             .stat-item .label { font-size: 11px; }
+            .batch-item { padding: 7px 8px; gap: 6px; }
+            .batch-item .batch-phone { font-size: 13.5px; padding: 2px 6px; letter-spacing: 0.3px; }
+            .batch-item .batch-code { font-size: 12px; padding: 2px 7px; letter-spacing: 1px; }
         }
     </style>
 </head>
@@ -387,6 +437,28 @@
                     <button class="btn btn-danger" onclick="lockOrder()">释放</button>
                 </div>
                 <div id="lockResult" class="hidden alert" style="margin-top:10px;"></div>
+            </div>
+
+            <!-- ===== 新增：批量接码卡片 ===== -->
+            <div class="ios-card">
+                <div class="ios-card-header" style="margin-bottom: 10px;">
+                    <span class="ios-card-title"><span class="emoji">⚡</span> 批量接码</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="ios-card-sub" id="batchStatusText"></span>
+                        <button class="btn btn-secondary btn-sm" onclick="clearBatchList()">清空</button>
+                    </div>
+                </div>
+                <div class="batch-row">
+                    <div class="form-group">
+                        <label>获取数量</label>
+                        <input type="number" id="batchFetchCount" min="1" max="20" value="5">
+                    </div>
+                    <button class="btn btn-primary" id="batchFetchBtn" onclick="startBatchFetch()">开始获取</button>
+                </div>
+                <div class="batch-phone-list" id="batchPhoneList">
+                    <div class="list-empty">点击“开始获取”批量创建订单</div>
+                </div>
+                <div class="hint-text">手机号可单击复制 · 验证码自动刷新 · 右侧按钮释放</div>
             </div>
         </div>
 
@@ -559,6 +631,7 @@
                 sessionStorage.removeItem('admin_logged_in');
                 adminBox.classList.add('hidden'); loginBox.classList.remove('hidden'); loginPass.value = ''; loginError.classList.add('hidden');
                 if (window.recordPollingTimer) { clearInterval(window.recordPollingTimer); window.recordPollingTimer = null; }
+                if (window.batchPollTimer) { clearInterval(window.batchPollTimer); window.batchPollTimer = null; }
                 showToast('已退出');
             };
 
@@ -677,23 +750,29 @@
                     showToast('✅ 基础配置已保存（已同步到云端）');
                 };
 
-                async function createOrderAndGetLink(specifiedPhone = null) {
-                    // 【改动】订单号缩短：HZ + 4位时间戳(36进制) + 4位随机字符 = 共 10 位（原为 14 位）
+                /* ---------- 订单创建（拆分为「仅创建」+「创建并取链接」） ---------- */
+                async function createOrderOnly(specifiedPhone = null) {
                     const oid = 'HZ'
                         + Date.now().toString(36).toUpperCase().slice(-4)
                         + Math.random().toString(36).substring(2, 6).toUpperCase();
                     const curCfg = getStoredConfig();
                     let apiUrl = `${API_BASE}?action=createOrder&oid=${oid}&sid=${curCfg.sid}`;
-                    if (specifiedPhone) { apiUrl += `&phone=${encodeURIComponent(specifiedPhone)}`; } 
-                    else {
+                    if (specifiedPhone) {
+                        apiUrl += `&phone=${encodeURIComponent(specifiedPhone)}`;
+                    } else {
                         if (curCfg.ascription) apiUrl += `&ascription=${encodeURIComponent(curCfg.ascription)}`;
-                        if (curCfg.paragraph) apiUrl += `&paragraph=${encodeURIComponent(curCfg.paragraph)}`;
-                        if (curCfg.exclude) apiUrl += `&exclude=${encodeURIComponent(curCfg.exclude)}`;
-                        if (curCfg.uid) apiUrl += `&uid=${encodeURIComponent(curCfg.uid)}`;
+                        if (curCfg.paragraph)  apiUrl += `&paragraph=${encodeURIComponent(curCfg.paragraph)}`;
+                        if (curCfg.exclude)    apiUrl += `&exclude=${encodeURIComponent(curCfg.exclude)}`;
+                        if (curCfg.uid)        apiUrl += `&uid=${encodeURIComponent(curCfg.uid)}`;
                     }
-                    const resp = await fetch(apiUrl); const data = await resp.json();
+                    const resp = await fetch(apiUrl);
+                    const data = await resp.json();
                     if (!data.success) throw new Error(data.error || '创建订单失败');
-                    // 【改动】改成路径形式：https://xxx/HZxxxxx
+                    return oid;
+                }
+
+                async function createOrderAndGetLink(specifiedPhone = null) {
+                    const oid = await createOrderOnly(specifiedPhone);
                     return location.origin + '/' + oid;
                 }
 
@@ -739,17 +818,30 @@
                     } catch (e) { showToast('⚠️ 请求失败：' + e.message); }
                 };
 
+                /* ---------- 剪贴板 ---------- */
+                function fallbackCopy(text, okMsg) {
+                    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
+                    document.body.appendChild(ta); ta.select();
+                    try { document.execCommand('copy'); showToast(okMsg || '📋 已复制'); } catch(e) { showToast('⚠️ 复制失败，请手动复制'); }
+                    document.body.removeChild(ta);
+                }
+
+                function doCopy(text, okMsg) {
+                    if (!text) { showToast('⚠️ 没有可复制的内容'); return; }
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text)
+                            .then(() => showToast(okMsg || '📋 已复制'))
+                            .catch(() => fallbackCopy(text, okMsg));
+                    } else {
+                        fallbackCopy(text, okMsg);
+                    }
+                }
+
                 window.copyText = function(id) {
                     const el = document.getElementById(id); if (!el) return;
                     const text = el.textContent.trim(); if (!text) { showToast('⚠️ 没有可复制的内容'); return; }
-                    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('📋 已复制')).catch(() => fallbackCopy(text)); } else { fallbackCopy(text); }
+                    doCopy(text);
                 };
-                function fallbackCopy(text) {
-                    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
-                    document.body.appendChild(ta); ta.select();
-                    try { document.execCommand('copy'); showToast('📋 已复制'); } catch(e) { showToast('⚠️ 复制失败，请手动复制'); }
-                    document.body.removeChild(ta);
-                }
 
                 window.renderActiveOrders = function(orders) {
                     const container = document.getElementById('activeOrderList');
@@ -914,6 +1006,189 @@
                         amountEl.textContent = '⚠️'; errorEl.textContent = '请求失败：' + e.message; errorEl.classList.remove('hidden');
                     }
                 };
+
+                /* ============================================================
+                 *  批量接码
+                 * ============================================================ */
+                window.batchItems = [];        // { oid, phone, code }
+                window.batchPollTimer = null;
+                let batchPollTicks = 0;
+                let lastBatchSignature = '';
+
+                function batchSignature() {
+                    return window.batchItems.map(i => `${i.oid}:${i.phone || ''}:${i.code || ''}`).join('|');
+                }
+
+                function updateBatchStatusText() {
+                    const el = document.getElementById('batchStatusText');
+                    if (!el) return;
+                    const total = window.batchItems.length;
+                    if (!total) { el.textContent = ''; return; }
+                    const got = window.batchItems.filter(i => i.phone).length;
+                    const coded = window.batchItems.filter(i => i.code).length;
+                    el.textContent = `${got}/${total} 已获取${coded ? ' · ' + coded + '码' : ''}`;
+                }
+
+                window.renderBatchList = function(force) {
+                    const container = document.getElementById('batchPhoneList');
+                    if (!container) return;
+
+                    if (window.batchItems.length === 0) {
+                        container.innerHTML = '<div class="list-empty">点击“开始获取”批量创建订单</div>';
+                        lastBatchSignature = '';
+                        updateBatchStatusText();
+                        return;
+                    }
+
+                    const sig = batchSignature();
+                    if (!force && sig === lastBatchSignature) return;
+                    lastBatchSignature = sig;
+
+                    container.innerHTML = window.batchItems.map(item => {
+                        const phoneHtml = item.phone
+                            ? `<span class="batch-phone" onclick="copyBatchPhone('${item.oid}')" title="点击复制手机号">${item.phone}</span>`
+                            : `<span class="batch-phone waiting">⏳ 等待分配…</span>`;
+                        const codeHtml = item.code ? `<span class="batch-code">${item.code}</span>` : '';
+                        return `<div class="batch-item">
+                            <div class="batch-left">${phoneHtml}${codeHtml}</div>
+                            <button class="btn btn-danger btn-sm batch-release" onclick="releaseBatchItem('${item.oid}')">释放</button>
+                        </div>`;
+                    }).join('');
+
+                    updateBatchStatusText();
+                };
+
+                window.copyBatchPhone = function(oid) {
+                    const item = window.batchItems.find(i => i.oid === oid);
+                    if (!item) return;
+                    if (!item.phone) { showToast('⚠️ 手机号还未分配'); return; }
+                    doCopy(item.phone, '📋 手机号已复制');
+                };
+
+                window.releaseBatchItem = async function(oid) {
+                    const item = window.batchItems.find(i => i.oid === oid);
+                    if (!item) return;
+                    const curCfg = getStoredConfig();
+                    try {
+                        const resp = await fetch(`${API_BASE}?action=lockOrder&oid=${encodeURIComponent(oid)}&sid=${curCfg.sid}`);
+                        const data = await resp.json();
+                        if (data.success) {
+                            window.batchItems = window.batchItems.filter(i => i.oid !== oid);
+                            window.renderBatchList(true);
+                            showToast('✅ 已释放 ' + (item.phone || oid));
+                            window.loadActiveOrders(true);
+                        } else {
+                            showToast('⚠️ ' + (data.error || '释放失败'));
+                        }
+                    } catch (e) {
+                        showToast('⚠️ 请求失败：' + e.message);
+                    }
+                };
+
+                window.clearBatchList = function() {
+                    if (window.batchItems.length === 0) { showToast('列表已经是空的'); return; }
+                    if (!confirm('确定清空列表吗？（不会释放订单）')) return;
+                    window.batchItems = [];
+                    window.renderBatchList(true);
+                    stopBatchPolling();
+                    showToast('已清空列表');
+                };
+
+                function stopBatchPolling() {
+                    if (window.batchPollTimer) { clearInterval(window.batchPollTimer); window.batchPollTimer = null; }
+                }
+
+                function startBatchPolling() {
+                    stopBatchPolling();
+                    batchPollTicks = 0;
+                    pollBatchTick();
+                    window.batchPollTimer = setInterval(pollBatchTick, 3000);
+                }
+
+                async function pollBatchTick() {
+                    if (!window.batchItems || window.batchItems.length === 0) { stopBatchPolling(); return; }
+                    batchPollTicks++;
+                    if (batchPollTicks > 400) { stopBatchPolling(); return; }   // 约 20 分钟上限
+
+                    const results = await Promise.allSettled([
+                        fetchWithTimeout(`${API_BASE}?action=listActiveOrders`, 5000),
+                        fetchWithTimeout(`${API_BASE}?action=listAllOrders&limit=100`, 8000)
+                    ]);
+
+                    // 先合并 listAllOrders（含验证码/状态），再用 listActiveOrders（含手机号）覆盖
+                    const remoteMap = new Map();
+                    results.forEach(r => {
+                        if (r.status === 'fulfilled' && r.value && Array.isArray(r.value.orders)) {
+                            r.value.orders.forEach(o => {
+                                if (!o || !o.oid) return;
+                                remoteMap.set(o.oid, Object.assign({}, remoteMap.get(o.oid) || {}, o));
+                            });
+                        }
+                    });
+
+                    let changed = false;
+                    window.batchItems.forEach(item => {
+                        const remote = remoteMap.get(item.oid);
+                        if (!remote) return;
+                        if (remote.phone && remote.phone !== '---' && remote.phone !== item.phone) {
+                            item.phone = remote.phone; changed = true;
+                        }
+                        if (remote.code && remote.code !== item.code) {
+                            item.code = remote.code; changed = true;
+                        }
+                    });
+
+                    if (changed) window.renderBatchList(true);
+
+                    // 全部拿到验证码后停止轮询
+                    if (window.batchItems.length && window.batchItems.every(i => i.code)) {
+                        stopBatchPolling();
+                    }
+                }
+
+                window.startBatchFetch = async function() {
+                    const input = document.getElementById('batchFetchCount');
+                    const count = parseInt(input.value, 10) || 0;
+                    if (count < 1 || count > 20) { showToast('⚠️ 数量需在 1–20 之间'); return; }
+
+                    const btn = document.getElementById('batchFetchBtn');
+                    if (btn.disabled) return;
+                    const oldText = btn.textContent;
+                    btn.disabled = true; btn.textContent = '创建中…';
+                    showToast('⏳ 正在批量创建订单…');
+
+                    try {
+                        const results = await Promise.allSettled(
+                            Array.from({ length: count }, () => createOrderOnly())
+                        );
+
+                        const newItems = [];
+                        results.forEach(r => {
+                            if (r.status === 'fulfilled') newItems.push({ oid: r.value, phone: '', code: '' });
+                        });
+
+                        if (newItems.length === 0) {
+                            const reason = results.find(r => r.status === 'rejected');
+                            throw new Error(reason && reason.reason ? reason.reason.message : '全部创建失败');
+                        }
+
+                        window.batchItems = newItems.concat(window.batchItems);
+                        if (window.batchItems.length > 50) window.batchItems = window.batchItems.slice(0, 50);
+
+                        window.renderBatchList(true);
+                        startBatchPolling();
+
+                        const failed = count - newItems.length;
+                        showToast(`✅ 已创建 ${newItems.length} 个订单${failed ? `，${failed} 个失败` : ''}`);
+                    } catch (e) {
+                        showToast('⚠️ ' + e.message);
+                    } finally {
+                        btn.disabled = false; btn.textContent = oldText;
+                    }
+                };
+
+                // 初始化批量列表占位
+                window.renderBatchList(true);
             }
         })();
     </script>
