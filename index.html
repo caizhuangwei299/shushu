@@ -14,6 +14,7 @@
             --primary: #007AFF;
             --primary-hover: #0066D9;
             --danger: #FF3B30;
+            --danger-hover: #E0352B;
             --success: #34C759;
             --warning: #FF9500;
             --text-primary: #1C1C1E;
@@ -75,6 +76,7 @@
         .header .logo .emoji { font-size: 32px; }
         .header .subtitle { color: var(--text-tertiary); font-size: 15px; margin-top: 4px; font-weight: 400; }
         
+        /* 订单号点击复制样式 */
         .header .order-id { 
             font-size: 13px; 
             color: var(--text-quaternary); 
@@ -86,7 +88,9 @@
             transition: color var(--transition);
             display: inline-block;
         }
-        .header .order-id:hover { color: var(--primary); }
+        .header .order-id:hover {
+            color: var(--primary);
+        }
 
         .btn {
             display: inline-flex;
@@ -153,7 +157,8 @@
         }
         .info-card .label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; margin-bottom: 8px; }
         .phone-number { font-size: 28px; font-weight: 600; letter-spacing: 2px; color: var(--text-primary); user-select: all; }
-        
+        .code-number { font-size: 36px; font-weight: 700; letter-spacing: 6px; color: var(--primary); padding: 8px 0; user-select: all; font-family: 'SF Mono', 'Consolas', monospace; }
+
         .status-text {
             font-weight: 500;
             padding: 14px 16px;
@@ -623,58 +628,6 @@
         }
         .code-warning .cw-icon { display: block; font-size: 18px; margin-bottom: 4px; }
 
-        /* ===== 新增：无图标经典强警告红 ===== */
-        .alert-box-strong {
-            background: #FFF2F0;
-            border: 2px solid #FF4D4F;
-            border-radius: var(--radius-sm);
-            padding: 12px 10px;
-            margin: 16px 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.1);
-        }
-        .alert-box-strong span {
-            font-size: 14px;
-            color: #D9363E;
-            font-weight: 700;
-            line-height: 1.5;
-            display: inline-block;
-        }
-
-        /* ===== 方案3：轻量渐变描边 ===== */
-        .code-contact, .global-footer {
-            margin-top: 20px;
-            padding: 12px;
-            background: #fff;
-            border: 2px solid transparent;
-            background-clip: padding-box, border-box;
-            background-origin: padding-box, border-box;
-            background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, #007AFF, #FF2D55);
-            border-radius: 12px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            user-select: all;
-        }
-        .code-contact { margin-top: 18px; }
-        
-        .code-contact .contact-v, .global-footer .contact-v {
-            background: linear-gradient(135deg, #007AFF, #FF2D55);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
-            font-size: 20px;
-            font-family: 'SF Mono', Consolas, monospace;
-            letter-spacing: 1px;
-            cursor: pointer;
-        }
-
         @media (max-width: 480px) {
             .tutorial-modal { padding: 24px 16px 28px; max-height: 95vh; border-radius: 20px; }
             .tutorial-title { font-size: 20px; }
@@ -690,9 +643,6 @@
             .cm-value { font-size: 15px; }
             .cm-value.cm-code-val { font-size: 20px; letter-spacing: 1.5px; }
             .code-warning { font-size: 12.5px; padding: 11px 10px; }
-            .code-contact, .global-footer { font-size: 13px; padding: 10px; }
-            .code-contact .contact-v, .global-footer .contact-v { font-size: 18px; }
-            .alert-box-strong span { font-size: 13px; }
         }
     </style>
 </head>
@@ -713,6 +663,7 @@
         <div id="orderView" class="hidden">
             <div class="header">
                 <div class="logo"><span class="emoji">📱</span> 获取验证码</div>
+                <!-- 订单号显示区（点击自动复制已在 JS 中绑定） -->
                 <div class="order-id" id="orderIdDisplay" title="点击复制订单号"></div>
             </div>
 
@@ -734,11 +685,6 @@
                     <span class="tb-arrow">›</span>
                 </div>
 
-                <!-- 【界面1：初始界面】新增警告框 -->
-                <div class="alert-box-strong">
-                    <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题<br>均不补登以及售后</span>
-                </div>
-
                 <button class="btn btn-primary" onclick="getPhone()" id="getPhoneBtn" style="font-size: 15px; padding: 15px 10px;">
                     我已阅读教程，获取号码
                 </button>
@@ -758,11 +704,11 @@
                 </div>
                 <button class="btn-copy" onclick="copyPhone()">复制手机号</button>
 
-                <!-- 【界面2：等待验证码界面】替换原有的红字框，使用更醒目的强警告 -->
-                <div class="alert-box-strong" style="margin-top: 18px;">
-                    <span>
+                <!-- 精准修改：仅调整此块红字的字体大小与文案 -->
+                <div style="margin-top: 18px; padding: 16px 12px; background: rgba(255, 59, 48, 0.08); border: 1.5px solid rgba(255, 59, 48, 0.25); border-radius: var(--radius-sm); text-align: center;">
+                    <span style="color: var(--danger); font-weight: 700; font-size: 14px; line-height: 1.6; display: inline-block;">
                         耐心等验证码，超时可释放更换号码<br>
-                        每个号只能接收一次码，二次获取/更换设备/退出账号等个人问题均不补登以及售后
+                        二次获取验证码导致验证失败不售后
                     </span>
                 </div>
 
@@ -773,9 +719,15 @@
                             复制手机号到加速器获取验证码登录
                         </span>
                     </div>
+
                     <div id="countdownDisplay" class="hidden">180s</div>
-                    <div class="polling-indicator" id="pollingIndicator"></div>
-                    <p class="text-quaternary"></p>
+
+                    <div class="polling-indicator" id="pollingIndicator">
+                        <span class="polling-dot"></span>
+                        <span>正在轮询验证码...</span>
+                        <span class="poll-count" id="pollCount"></span>
+                    </div>
+                    <p class="text-quaternary" style="margin-top: 8px;">自动检测中，收到验证码将自动显示</p>
                 </div>
 
                 <button class="btn btn-secondary" onclick="releasePhone()" id="releaseBtn" disabled style="margin-top: 20px;">
@@ -830,22 +782,12 @@
                     </div>
                 </div>
 
-                <!-- 【界面3：验证码已收到（主页）】新增警告框 -->
-                <div class="alert-box-strong">
-                    <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题<br>均不补登以及售后</span>
-                </div>
-
             </div>
 
             <div id="errorBox" class="hidden">
                 <div class="status-text status-error" id="errorMessage"></div>
                 <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 16px;">🔄 重试</button>
             </div>
-        </div>
-
-        <!-- ===== 全局底部联系方式（方案3） ===== -->
-        <div class="global-footer">
-            制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
         </div>
     </div>
 
@@ -918,7 +860,7 @@
             </div>
 
             <div class="tutorial-tip">
-                💡 温馨提示：每个号只能接一次码，退出或者换设备等个人问题不售后。
+                💡 温馨提示：每个手机号仅可使用一次，退出或者换设备都需要重拍。
             </div>
 
             <button class="btn btn-primary tutorial-footer-btn" onclick="closeTutorial()">
@@ -963,23 +905,13 @@
                 </div>
             </div>
 
-            <!-- 【调整位置】按顺序兑换警告 移到了上面 -->
+            <!-- 警告提示 (弹窗红字保留) -->
             <div class="code-warning">
                 <span class="cw-icon"></span>
                 按顺序兑换以上口令并且全部激活，<br>囤货以及不按顺序兑换不售后！
             </div>
 
-            <!-- 【调整位置】二次获取警告 移到了下面 -->
-            <div class="alert-box-strong" style="margin: 0 0 16px 0;">
-                <span>每个号只能接收一次码<br>二次获取/更换设备/退出账号等个人问题均不补登以及售后</span>
-            </div>
-
             <button class="btn btn-primary" onclick="closeCodeModal()">我已复制，知道了</button>
-
-            <!-- 收到验证码弹窗底部微信号 (方案3) -->
-            <div class="code-contact">
-                制作同款网页脚本请联系V：<span class="contact-v" onclick="copyText('1113630283', this)">1113630283</span>
-            </div>
 
         </div>
     </div>
@@ -1217,13 +1149,10 @@
                 if (pollingIndicator) { pollingIndicator.style.display = 'none'; }
             }
 
-            // ★ 修复：增加 if (pollCount) 判空保护，防止报错
             function updatePollIndicator() {
                 if (pollingIndicator) {
                     pollingIndicator.style.display = 'flex';
-                    if (pollCount) {
-                        pollCount.textContent = `(${pollAttempts} 次)`;
-                    }
+                    pollCount.textContent = `(${pollAttempts} 次)`;
                 }
             }
 
