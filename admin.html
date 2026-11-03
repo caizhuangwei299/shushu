@@ -311,7 +311,7 @@
         .nav-item.active { color: var(--primary); }
         .nav-item .icon { font-size: 22px; margin-bottom: 2px; transition: transform 0.3s ease; }
         .nav-item.active .icon { transform: translateY(-2px) scale(1.1); }
-        .nav-item .text { letter-spacing: 0.5px; }
+        .nav-item .text { letter-spacing: 0.5px; white-space: nowrap; }
 
         /* ===== Toast ===== */
         .toast {
@@ -343,6 +343,7 @@
             .batch-item .batch-code { font-size: 12px; padding: 2px 7px; letter-spacing: 1px; }
             .batch-item .batch-actions { gap: 4px; }
             .batch-item .batch-actions .btn { padding: 4px 6px; font-size: 10.5px; }
+            .nav-item .text { font-size: 10px; letter-spacing: 0; }
         }
     </style>
 </head>
@@ -493,17 +494,8 @@
             </div>
         </div>
 
-        <!-- ============ Tab 3: 我的 ============ -->
-        <div id="tab-profile" class="view">
-            <div class="ios-card">
-                <div class="ios-card-header"><span class="ios-card-title"><span class="emoji">🔑</span> API 账号配置</span></div>
-                <div class="form-group"><label>API 账号 (User)</label><input type="text" id="configApiUser" placeholder="输入接码平台账号"></div>
-                <div class="form-group"><label>API 密码 (Pass)</label><input type="password" id="configApiPass" placeholder="输入接码平台密码"></div>
-                <button class="btn btn-primary btn-block" onclick="saveApiConfig()" style="margin-top: 6px;">保存 API 配置</button>
-                <div id="apiSaveResult" class="hidden alert alert-success" style="margin-top: 10px;">✅ API 配置已保存</div>
-            </div>
-
-            <!-- ===== 批量接码卡片 ===== -->
+        <!-- ============ Tab 3: 批量接码 ============ -->
+        <div id="tab-batch" class="view">
             <div class="ios-card">
                 <div class="ios-card-header" style="margin-bottom: 10px;">
                     <span class="ios-card-title"><span class="emoji">⚡</span> 批量接码</span>
@@ -524,16 +516,28 @@
                 </div>
                 <div class="hint-text">手机号/验证码可单击复制 · 右侧可释放或建链</div>
             </div>
+        </div>
+
+        <!-- ============ Tab 4: 我的 ============ -->
+        <div id="tab-profile" class="view">
+            <div class="ios-card">
+                <div class="ios-card-header"><span class="ios-card-title"><span class="emoji">🔑</span> API 账号配置</span></div>
+                <div class="form-group"><label>API 账号 (User)</label><input type="text" id="configApiUser" placeholder="输入接码平台账号"></div>
+                <div class="form-group"><label>API 密码 (Pass)</label><input type="password" id="configApiPass" placeholder="输入接码平台密码"></div>
+                <button class="btn btn-primary btn-block" onclick="saveApiConfig()" style="margin-top: 6px;">保存 API 配置</button>
+                <div id="apiSaveResult" class="hidden alert alert-success" style="margin-top: 10px;">✅ API 配置已保存</div>
+            </div>
 
             <div class="ios-card" style="text-align: center;">
                 <button class="btn btn-danger btn-block" onclick="logout()" style="padding: 12px; font-size: 15px;">退出登录</button>
             </div>
         </div>
 
-        <!-- 底部导航栏 -->
+        <!-- 底部导航栏（4个独立标签） -->
         <nav class="bottom-nav">
             <div class="nav-item" data-target="tab-record" onclick="switchTab('tab-record', this)"><span class="icon">📋</span><span class="text">记录</span></div>
             <div class="nav-item active" data-target="tab-receive" onclick="switchTab('tab-receive', this)"><span class="icon">📨</span><span class="text">接码</span></div>
+            <div class="nav-item" data-target="tab-batch" onclick="switchTab('tab-batch', this)"><span class="icon">⚡</span><span class="text">批量</span></div>
             <div class="nav-item" data-target="tab-profile" onclick="switchTab('tab-profile', this)"><span class="icon">👤</span><span class="text">我的</span></div>
         </nav>
     </div>
